@@ -1,310 +1,451 @@
-# ROADMAP – Sollicitatie-app Het Spectrum
+ROADMAP – Sollicitatie-app Het Spectrum (Strak + Gedetailleerd, met multi-vacature)
+Kernregels (waar we niet van afwijken)
 
-Dit document is het **officiële naslagwerk en de planning** voor de ontwikkeling van de sollicitatie-app voor **Het Spectrum**. Het dient als leidraad voor de volledige klas, met duidelijke fasering, deadlines en taakverdeling.
+Staf kan kandidaten toevoegen + documenten + opmerkingen + (0..N) vacatures koppelen (incl. “spontaan” als 0 vacatures)
 
----
+Staf & directie kunnen vacatures aanmaken (vak/uren/klassen optioneel)
 
-## 1. Projectdoel
+Directie evalueert per kandidaat x vacature (status ja/neen/reserve + tekst + next step)
 
-Een interne webapplicatie waarmee:
+Evaluatie triggert mailvoorstel (met juiste naam + vacature(s) of spontaan + next step)
 
-* **Admin** sollicitaties kan registreren (op basis van e-mails + bijlagen)
-* **Directie en staf** kandidaten kunnen evalueren en rangschikken
-* **Selectiebeslissingen** gestructureerd worden vastgelegd
-* **Antwoordmails** semi-automatisch kunnen worden voorbereid
+Overal: zoeken, filteren, sorteren (naam, vak, klas, status)
 
-De applicatie vervangt het huidige Word/PDF-gedreven proces ("Overzicht selectiegesprekken").
+Datamodel (MVP-waardig, maar compleet)
+Entiteiten
 
----
+users
 
-## 2. Randvoorwaarden
+id, email, password_hash, role (admin|staf|directie), created_at
 
-* **Deadline:** 8 weken
-* **Lesmoment:** 3 uur per week (thuiswerk toegestaan)
-* **Team:** 6 leerlingen
-* **Focus:** werkende MVP > perfecte afwerking
+jobs (vacatures)
 
----
+id, title/vak, hours (nullable), classes (nullable string), notes (nullable), is_active, created_at
 
-## 3. Tech stack (vastgelegd)
+candidates
 
-* **Frontend:** React (JavaScript, geen TypeScript)
-* **Rendering:** Server Side Rendering (SSR)
-* **Backend:** Node.js + Express
-* **Build tool:** Vite
-* **Database:** Turso (SQLite in de cloud)
-* **Styling:** Reguliere CSS + CSS variables
-* **Icons:** Phosphor Icons
-* **Hosting:** Vercel (deploy spike voorzien)
+id, name, subjects (vrije tekst of comma list), staff_notes (text), created_at
 
----
+candidate_documents
 
-## 4. Rollen en rechten (simpel gehouden)
+id, candidate_id, type (cv|brief|extra), filename, url/path, uploaded_by_user_id, created_at
 
-| Rol               | Rechten                                                                          |
-| ----------------- | -------------------------------------------------------------------------------- |
-| Admin             | Vacatures beheren, sollicitaties invoeren, bijlagen uploaden, mails voorbereiden |
-| Directie          | Alles bekijken, evalueren, rangschikken, keuze maken, mails goedkeuren/verzenden |
-| Staf / Psycholoog | Evaluaties invullen, selectie-overzicht bekijken                                 |
+applications (koppelt kandidaat aan meerdere vacatures)
 
----
+id, candidate_id, created_by_user_id, created_at
 
-## 5. Functionele scope
+(optioneel) source (email/manual), received_at
 
-### MVP (verplicht) - STATUS: ✅ VOLLEDIG GEÏMPLEMENTEERD
+application_jobs (many-to-many)
 
-1. ✅ Login + rollen (4 rollen: admin, directie, staf, psycholoog)
-2. ✅ Vacatures aanmaken/bewerken (volledige CRUD)
-3. ✅ Kandidaten + sollicitaties beheren (volledige CRUD)
-4. ✅ Sollicitaties koppelen aan meerdere vacatures (many-to-many relatie)
-5. ✅ CV en sollicitatiebrief uploaden (Vercel Blob + lokale storage)
-6. ✅ Evaluatie per kandidaat per vacature (verdict, ranking, chosen status)
-7. ✅ Digitaal "Overzicht selectiegesprekken" (per vacature)
-8. ✅ In-app notificaties bij nieuwe sollicitatie
-9. ✅ Mail-templates genereren (draft/approved/sent)
+application_id, job_id
 
-### Stretch goals (alleen indien tijd)
+uniek: (application_id, job_id)
 
-* Automatische data-extractie uit PDF/DOCX
-* E-mail inbox koppeling
-* Export naar PDF
+evaluations (per kandidaat x vacature)
 
----
+id, application_id, job_id, evaluator_user_id
 
-## 6. Roadmap per week
+decision (yes|no|reserve)
 
-### Week 1 – Setup & fundament
+notes (text)
 
-**Doel:** project kan draaien, inloggen werkt
+next_step_id (nullable)
 
-* Repository opzetten
-* Express + Vite SSR skeleton
-* Turso connectie
-* Database schema v1
-* Login + sessies
+updated_at
 
-**Deliverable:** dashboardpagina zichtbaar na login
+next_steps
 
----
+id, label (bv “volgend gesprek”), is_active, sort_order
 
-### Week 2 – Vacatures
+mail_drafts
 
-**Doel:** vacatures volledig beheersbaar
+id, application_id, job_id (nullable bij “spontaan”)
 
-* Jobs API (CRUD)
-* Vacature-overzicht + detail + formulier
-* Basis CSS layout
+to_email (nullable als nog niet gekend), subject, body
 
-**Deliverable:** admin/directie kan vacatures beheren
+status (draft|sent) (geen approved nodig, directie is beslisser)
 
----
+generated_from_decision, generated_at, sent_at
 
-### Week 3 – Kandidaten & sollicitaties
+“Spontaan” = application zonder gekoppelde jobs OF mail_draft met job_id = null.
 
-**Doel:** sollicitaties registreren en koppelen
+UX-schermen (wat er minimaal moet zijn)
+Staf
 
-* Candidates API
-* Applications API
-* Koppeling sollicitatie ↔ vacatures (many-to-many)
-* Formulier "nieuwe sollicitatie"
+Kandidaat toevoegen (naam, vakken, opmerkingen, documenten uploaden)
 
-**Deliverable:** admin kan sollicitatie toevoegen en linken
+Sollicitatie aanmaken (kies kandidaat of “nieuw”, koppel 0..N vacatures, save)
 
----
+Overzicht kandidaten/sollicitaties met filter + zoek + sorteer
 
-### Week 4 – Bijlagen & detailpagina
+Dossier: documenten, gekoppelde vacatures, interne notities
 
-**Doel:** dossiers raadpleegbaar maken
+Directie
 
-* Upload CV/brief (multer)
-* Opslag en download
-* Sollicitatie-detailpagina
+Vacatures beheren
 
-**Deliverable:** directie kan dossiers volledig inkijken
+Dossier bekijken
 
----
+Evaluatie per vacature-tab (voor elke gekoppelde vacature: ja/neen/reserve + next step + tekst)
 
-### Week 5 – Evaluaties & selectie-overzicht
+Mailvoorstel bekijken + “Verzenden”
 
-**Doel:** kern van het project
+Week-by-week (gedetailleerd)
+Week 1 — Setup, skeleton, auth, DB basis
 
-* Evaluations API
-* Evaluatieformulier per kandidaat per vacature
-* Rangschikking + verdict (geschikt/minder/niet)
-* Digitaal "Overzicht selectiegesprekken"
-* Aftekenen door directie/psycholoog
+Doel: project draait stabiel + login werkt + DB connect.
 
-**Deliverable:** selectieproces volledig digitaal
+Backend
 
----
+Express server structuur + SSR wiring
 
-### Week 6 – Mails, notificaties & deploy spike
+Turso connectie (env vars, client wrapper)
 
-**Doel:** end-to-end flow + online test
+DB migrations setup (1 script + schema versioning)
 
-* In-app notificaties bij nieuwe sollicitatie
-* Mail draft genereren op basis van evaluatie
-* Preview + goedkeuring
-* **Deploy spike op Vercel** (haalbaarheid check)
+Seed: users + paar vacatures + paar candidates
 
-**Deliverable:** volledige flow + online versie
+Auth
 
----
+Session-based auth (cookie session)
 
-### Week 7 – Stabilisatie & UX
+Login route + middleware requireAuth
 
-**Doel:** app robuust en gebruiksvriendelijk
+Role middleware requireRole(['staf','directie'])
 
-* Validatie + foutafhandeling
-* Filters (vacature, verdict, status)
-* Rechten afdwingen per rol
-* UI polish
+Frontend
 
-**Deliverable:** app klaar voor echte testdata
+SSR base layout (sidebar/topbar)
 
----
+Login page + protected route test
 
-### Week 8 – Test, bugfix & demo
+Dashboard placeholder per role
 
-**Doel:** afronden en presenteren
+Deliverable
 
-* Testscenario’s uitschrijven
-* Bugs oplossen
-* Demo-flow voorbereiden
-* Screenshots / printbare selectie-overzicht
+Inloggen als staf/directie/admin → dashboard zichtbaar
 
-**Deliverable:** finale oplevering + demo
+npm run migrate + npm run seed werkt
 
----
+Week 2 — Vacatures (CRUD) + basis UI patterns
 
-## 7. Taakverdeling (richtlijn)
+Doel: staf/directie kan vacatures aanmaken/bewerken/verwijderen.
 
-### Aline
+API
 
-* CSS tokens & layout
-* Tabellayout selectie-overzicht
-* SQL schema & testdata
+GET /api/jobs
 
-### Suhail
+POST /api/jobs
 
-* Database queries & services
-* Turso integratie
-* Filters & joins
+PUT /api/jobs/:id
 
-### Emre
+DELETE /api/jobs/:id (soft delete mag ook via is_active=false)
 
-* API routes
-* Validatie & edge cases
-* Attachments security
+UI
 
-### Artun
+JobsList (table + search input)
 
-* CSS implementatie van componenten
-* Layout (sidebar/topbar)
-* Finale UI cleanup
+JobForm (vak/uren/klassen optioneel)
 
-### Noa
+Role check: staf & directie mogen beheren
 
-* SSR & routing
-* Auth & rollen
-* Notificaties + mail flow
-* Deploy spike leiden
+Validatie
 
-### Noah
+Vak verplicht, rest optioneel
 
-* Formulieren (JobForm, ApplicationForm)
-* DOM-interactie
-* Testscenario’s & demo-voorbereiding
+Foutmelding UI + backend
 
----
+Deliverable
 
-## 8. Definition of Done (voor elke feature)
+Vacatures volledig beheersbaar in UI
 
-Een feature is **af** als:
+Sorteren A-Z op vak
 
-* Ze werkt end-to-end
-* Rechten correct worden afgedwongen
-* Validatie en foutmeldingen aanwezig zijn
-* Data correct wordt opgeslagen in Turso
-* Er minstens één testscenario is beschreven
+Week 3 — Kandidaten + documenten upload
 
----
+Doel: staf kan kandidaat registreren met docs.
 
-## 9. Implementation Status (Current)
+API
 
-### ✅ COMPLETED - Ready for Production
+GET /api/candidates
 
-**EPIC E0 — Baseline & Contract (FOUNDATION)**
-- ✅ E0.1 Datamodel definitief: Alle entiteiten gedocumenteerd in schema.sql
-- ✅ E0.2 API contract: Alle endpoints geïmplementeerd en gedocumenteerd
+POST /api/candidates
 
-**EPIC E1 — Database & Persistentie**
-- ✅ E1.1 Productie database: Turso (managed SQLite) configured
-- ✅ E1.2 Migrations & seed: `npm run migrate` fully functional
+PUT /api/candidates/:id
 
-**EPIC E2 — Backend API**
-- ✅ E2.1 Input validatie: Shared validators in place
-- ✅ E2.2 Status lifecycle: State transitions implemented
-- ✅ Alle API routes geïmplementeerd (auth, jobs, candidates, applications, evaluations, notifications, mail)
+GET /api/candidates/:id
 
-**EPIC E3 — Frontend UX & Flows**
-- ✅ E3.1 Sollicitatie indienen: ApplicationForm compleet
-- ✅ E3.2 Admin overzicht: Volledige dashboard + lijst views
-- ✅ Alle pagina's geïmplementeerd (12 pages)
-- ✅ Atomic design system compleet (atoms, molecules, organisms, layouts)
+POST /api/candidates/:id/documents (upload)
 
-**EPIC E4 — Auth & Rollen**
-- ✅ E4.1 Authenticatie: Session-based auth met bcrypt
-- ✅ E4.2 Rol-gebaseerde autorisatie: 4 rollen (admin, directie, staf, psycholoog)
+GET /api/documents/:id (download / open)
 
-**EPIC E5 — Deployment & Observability**
-- ✅ E5.1 Vercel deployment: Configured met vercel.json
-- ✅ E5.2 Logging: Error handling en logging implemented
-- ✅ Hybrid storage: Local development + Vercel Blob voor production
+Storage
 
-**EPIC E6 — QA & Release**
-- ✅ E6.2 Documentatie: Volledige docs (SETUP, GETTING_STARTED, FOLDER_STRUCTURE, DEPLOYMENT, DONE_LIST)
+Local dev storage + Vercel Blob in prod (zoals jullie al hebben)
 
-### 🔄 TESTING PHASE - Ready to Test
+Documenttypes: cv, brief, extra
 
-**EPIC E6 — QA & Release**
-- 🔄 E6.1 End-to-end checks: Ready for comprehensive testing
-  - Database seeded met testdata
-  - Alle flows te testen via UI
-  - Login credentials beschikbaar
+Security: alleen ingelogd + right roles
 
-### Release Checklist Status
+UI
 
-- ✅ Geen secrets in repo (.env.example aanwezig)
-- ✅ Productie DB persistent (Turso Cloud)
-- ✅ Auth + rollen actief (4 rollen geïmplementeerd)
-- ✅ Validatie op backend (shared validators)
-- ✅ Statusflow afdwingbaar (CHECK constraints in DB)
-- ✅ Deployment getest (Vercel-ready)
-- ✅ Basis monitoring actief (Error logging)
-- ✅ Documentatie bijgewerkt (Alle .md files compleet)
+CandidatesList (zoek + sorteer)
 
-### 🎯 Huidige status: **PRODUCTIE-KLAAR**
+CandidateForm (naam, vakken, staff_notes)
 
-De applicatie is **volledig functioneel** en voldoet aan alle MVP-eisen uit de oorspronkelijke roadmap.
-Klaar voor:
-- End-to-end testing
-- Demo voor stakeholders
-- Deployment naar Vercel productie
+CandidateDetail (docs list + upload)
 
-**Test credentials:**
-- Admin: admin@hetspectrum.be / Welcome123!
-- Directie: directie@hetspectrum.be / Welcome123!
-- Staf: staf@hetspectrum.be / Welcome123!
-- Psycholoog: psycholoog@hetspectrum.be / Welcome123!
+Deliverable
 
-**Next Steps:**
-1. Voer handmatige tests uit van alle gebruikersflows
-2. Voeg meer sample data toe indien gewenst
-3. Deploy naar Vercel productie
-4. Demo voor Het Spectrum team
+Staf kan dossier opbouwen: kandidaat + docs + opmerkingen
 
----
+Week 4 — Sollicitatie-flow (many-to-many vacatures)
 
-**Dit document is leidend.**
-Afwijken mag enkel na overleg en met behoud van een werkende MVP.
+Doel: staf kan een sollicitatie registreren en koppelen aan meerdere vacatures.
+
+API
+
+POST /api/applications
+
+body: candidate_id OR candidate_create payload
+
+job_ids: [] (0..N)
+
+GET /api/applications (met joins: candidate + gekoppelde jobs)
+
+GET /api/applications/:id (full dossier)
+
+PUT /api/applications/:id/jobs (jobs aanpassen)
+
+UI
+
+ApplicationCreate wizard:
+
+kies bestaande kandidaat of “nieuw”
+
+selecteer vacatures (multi-select + “geen/ spontaan”)
+
+bevestigen → dossier pagina
+
+ApplicationDetail:
+
+kandidaat info + docs
+
+gekoppelde vacatures chips/list
+
+link “jobs aanpassen”
+
+DB constraints
+
+application_jobs uniek per (application_id, job_id)
+
+bij verwijderen job: cascade of blokkeren (kies simpel: cascade)
+
+Deliverable
+
+Eén kandidaat kan aan meerdere vacatures hangen
+
+“Spontaan” is ook mogelijk (0 vacatures)
+
+Week 5 — Evaluaties per vacature + next steps beheer
+
+Doel: directie evalueert per gekoppelde vacature.
+
+Next steps
+
+Table next_steps
+
+UI klein beheer: add/edit/disable (directie of admin)
+
+Default steps seed:
+
+Volgend gesprek
+
+Proefles
+
+Contractbespreking
+
+Reserve houden
+
+Afwijzen – afgerond
+
+Evaluations API
+
+GET /api/applications/:id/evaluations (per job)
+
+POST/PUT /api/applications/:id/evaluations/:job_id
+
+decision: yes/no/reserve
+
+next_step_id
+
+notes
+
+UI
+
+ApplicationDetail krijgt “Evaluaties” sectie:
+
+Per gekoppelde vacature een card/tab:
+
+status select (ja/neen/reserve)
+
+next step dropdown
+
+tekstvak
+
+save
+
+Deliverable
+
+Directie kan per vacature een beslissing vastleggen + next step
+
+Week 6 — Mailgeneratie + verzenden (simpel maar volledig)
+
+Doel: evaluatie → mailvoorstel → directie verzendt.
+
+Mail templates
+
+3 basis templates (yes/no/reserve)
+
+placeholders:
+
+{{name}}
+
+{{job_title}} of fallback “spontane sollicitatie”
+
+{{next_step}}
+
+Subject rules:
+
+“Sollicitatie – {{job_title}}” of “Sollicitatie – Het Spectrum”
+
+API
+
+POST /api/mail/generate (application_id + job_id/null)
+
+GET /api/mail/drafts?application_id=...
+
+POST /api/mail/send (draft_id)
+
+UI
+
+In evaluatie card: knop “Genereer mail”
+
+MailDraft preview page:
+
+subject + body editbaar (optioneel)
+
+button “Verzenden”
+
+status “sent” + timestamp
+
+Deliverable
+
+End-to-end: evaluatie → maildraft → verzenden
+
+Week 7 — Overzichten, filters, sortering, rechten harden
+
+Doel: vlot bruikbaar in echte workflow.
+
+Filtering/Sorting (minimaal)
+
+Search input:
+
+kandidaat naam (contains)
+
+Filters:
+
+vacature (dropdown)
+
+klas (dropdown via jobs.classes)
+
+vak (jobs.title)
+
+status (ja/neen/reserve)
+
+Sorting:
+
+naam A-Z
+
+laatst aangepast (evaluations.updated_at)
+
+Rechten
+
+Staf:
+
+kandidaten + sollicitaties maken/bekijken
+
+vacatures beheren (zoals gewenst)
+
+GEEN mail verzenden
+
+Directie:
+
+evalueren + mail verzenden
+
+Admin:
+
+alles + beheer next steps
+
+Deliverable
+
+Overzichtschermen zijn “werkbaar” voor schoolgebruik
+
+Rechten zijn waterdicht
+
+Week 8 — QA, testscenario’s, bugfix, demo
+
+Doel: stabiel + toonbaar + klaar voor echte data.
+
+QA
+
+Testplan (10-15 scenario’s)
+
+kandidaat toevoegen + docs
+
+spontane sollicitatie + mail
+
+2 vacatures koppelen + 2 aparte evaluaties
+
+filters werken correct
+
+rechten: staf kan niet verzenden
+
+Demo
+
+Demo script (2 minuten + 5 minuten versie)
+
+Seed data uitbreiden (realistische namen/vakken)
+
+Deploy
+
+Vercel productie deploy
+
+Smoke test na deploy
+
+Deliverable
+
+Finale oplevering + demo + checklist afgevinkt
+
+Definition of Done (strakker)
+
+Een feature is af als:
+
+UI flow werkt end-to-end
+
+DB correct + constraints ok
+
+Rollen enforced op backend
+
+Validatie + foutmeldingen aanwezig
+
+Minstens 1 testscenario toegevoegd
+
+Extra “niet-exotisch maar nuttig” (optioneel als tijd)
+
+Soft delete voor kandidaten/vacatures (om data niet te verliezen)
+
+“Laatste wijziging door” op evaluatie/mails
+
+Snelle actie: in overzicht direct status aanpassen (later)

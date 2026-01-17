@@ -6,8 +6,12 @@ export default defineConfig({
   build: {
     outDir: 'dist/client',
     manifest: true,
+    ssrManifest: true,
     rollupOptions: {
       input: '/src/entry-client.jsx'
     }
+  },
+  ssr: {
+    format: 'esm'
   }
 });

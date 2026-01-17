@@ -1,8 +1,12 @@
 import express from 'express';
 import { executeQuery } from '../db/client.js';
 import { verifyPassword } from '../auth/password.js';
+import { verifyMfaToken, verifyBackupCode, generateTempToken } from '../auth/mfa.js';
 
 const router = express.Router();
+
+// Store temp tokens in memory (in production, use Redis)
+const tempTokens = new Map();
 
 router.post('/login', async (req, res) => {
   try {
@@ -24,15 +28,38 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Ongeldige inloggegevens' });
     }
 
+    // Check if MFA is enabled
+    if (user.mfa_enabled === 1) {
+      // Generate temp token for MFA step
+      const tempToken = generateTempToken(user.id.toString());
+      tempTokens.set(tempToken, {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        timestamp: Date.now()
+      });
+
+      // Clean up old temp tokens (older than 10 minutes)
+      for (const [token, data] of tempTokens.entries()) {
+        if (Date.now() - data.timestamp > 10 * 60 * 1000) {
+          tempTokens.delete(token);
+        }
+      }
+
+      return res.json({
+        mfaRequired: true,
+        tempToken
+      });
+    }
+
+    // No MFA - complete login
     req.session.userId = user.id;
-    req.session.userName = user.name;
     req.session.userEmail = user.email;
     req.session.userRole = user.role;
 
     res.json({
       user: {
         id: user.id,
-        name: user.name,
         email: user.email,
         role: user.role
       }
@@ -40,6 +67,89 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Er is een fout opgetreden bij het inloggen' });
+  }
+});
+
+/**
+ * POST /api/auth/login/mfa
+ * Complete login with MFA verification
+ */
+router.post('/login/mfa', async (req, res) => {
+  try {
+    const { tempToken, code, isBackupCode } = req.body;
+
+    if (!tempToken || !code) {
+      return res.status(400).json({ error: 'Temp token en code zijn verplicht' });
+    }
+
+    // Verify temp token
+    const tokenData = tempTokens.get(tempToken);
+    if (!tokenData) {
+      return res.status(401).json({ error: 'Ongeldige of verlopen temp token' });
+    }
+
+    // Check token expiry (5 minutes)
+    if (Date.now() - tokenData.timestamp > 5 * 60 * 1000) {
+      tempTokens.delete(tempToken);
+      return res.status(401).json({ error: 'Temp token verlopen. Log opnieuw in.' });
+    }
+
+    // Get user with MFA secret
+    const result = await executeQuery(
+      'SELECT id, email, role, mfa_secret, mfa_backup_codes FROM users WHERE id = ? AND mfa_enabled = 1',
+      [tokenData.userId]
+    );
+
+    const user = result.rows[0];
+    if (!user) {
+      tempTokens.delete(tempToken);
+      return res.status(401).json({ error: 'MFA niet ingeschakeld voor deze gebruiker' });
+    }
+
+    let verified = false;
+
+    if (isBackupCode) {
+      // Verify backup code
+      const backupCodes = JSON.parse(user.mfa_backup_codes || '[]');
+      const matchedIndex = await verifyBackupCode(code, backupCodes);
+
+      if (matchedIndex !== null) {
+        verified = true;
+        // Remove used backup code
+        backupCodes.splice(matchedIndex, 1);
+        await executeQuery(
+          'UPDATE users SET mfa_backup_codes = ? WHERE id = ?',
+          [JSON.stringify(backupCodes), user.id]
+        );
+      }
+    } else {
+      // Verify TOTP token
+      verified = verifyMfaToken(user.mfa_secret, code);
+    }
+
+    if (!verified) {
+      return res.status(401).json({ error: 'Ongeldige code' });
+    }
+
+    // Delete temp token
+    tempTokens.delete(tempToken);
+
+    // Complete login
+    req.session.userId = user.id;
+    req.session.userEmail = user.email;
+    req.session.userRole = user.role;
+    req.session.mfaVerified = true;
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('MFA login error:', error);
+    res.status(500).json({ error: 'Er is een fout opgetreden bij MFA verificatie' });
   }
 });
 
@@ -57,7 +167,6 @@ router.get('/me', (req, res) => {
     res.json({
       user: {
         id: req.session.userId,
-        name: req.session.userName,
         email: req.session.userEmail,
         role: req.session.userRole
       }

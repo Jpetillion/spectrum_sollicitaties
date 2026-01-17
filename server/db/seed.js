@@ -8,17 +8,16 @@ export async function seedDatabase() {
   const defaultPassword = await hashPassword('Welcome123!');
 
   const users = [
-    { name: 'Admin User', email: 'admin@hetspectrum.be', role: 'admin' },
-    { name: 'Directie User', email: 'directie@hetspectrum.be', role: 'directie' },
-    { name: 'Staf User', email: 'staf@hetspectrum.be', role: 'staf' },
-    { name: 'Psycholoog User', email: 'psycholoog@hetspectrum.be', role: 'psycholoog' }
+    { email: 'admin@hetspectrum.be', role: 'admin' },
+    { email: 'directie@hetspectrum.be', role: 'directie' },
+    { email: 'staf@hetspectrum.be', role: 'staf' }
   ];
 
   for (const user of users) {
     try {
       await executeQuery(
-        'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
-        [user.name, user.email, defaultPassword, user.role]
+        'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
+        [user.email, defaultPassword, user.role]
       );
       console.log(`✓ Created user: ${user.email} (password: Welcome123!)`);
     } catch (error) {
@@ -30,34 +29,51 @@ export async function seedDatabase() {
     }
   }
 
+  // Create next_steps
+  const nextSteps = [
+    { label: 'Volgend gesprek', sort_order: 1 },
+    { label: 'Proefles', sort_order: 2 },
+    { label: 'Contractbespreking', sort_order: 3 },
+    { label: 'Reserve houden', sort_order: 4 },
+    { label: 'Afwijzen – afgerond', sort_order: 5 }
+  ];
+
+  for (const step of nextSteps) {
+    try {
+      await executeQuery(
+        'INSERT INTO next_steps (label, sort_order) VALUES (?, ?)',
+        [step.label, step.sort_order]
+      );
+      console.log(`✓ Created next step: ${step.label}`);
+    } catch (error) {
+      console.log(`→ Next step ${step.label} might already exist`);
+    }
+  }
+
   // Create sample jobs
   const sampleJobs = [
     {
       title: 'Leraar Wiskunde',
-      requirements_text: 'Master in de wiskunde of gelijkwaardig, pedagogische bekwaamheid',
-      grade: 'Secundair onderwijs',
-      subject: 'Wiskunde',
+      vak: 'Wiskunde',
       hours: 20,
-      period_text: 'Schooljaar 2025-2026',
-      start_date: '2025-09-01'
+      classes: '5e-6e jaar',
+      notes: 'Master in de wiskunde, pedagogische bekwaamheid vereist'
     },
     {
       title: 'Leraar Nederlands',
-      requirements_text: 'Master in de taal- en letterkunde Nederlands, pedagogische bekwaamheid',
-      grade: 'Secundair onderwijs',
-      subject: 'Nederlands',
+      vak: 'Nederlands',
       hours: 18,
-      period_text: 'Schooljaar 2025-2026',
-      start_date: '2025-09-01'
+      classes: '3e-4e jaar',
+      notes: 'Master taal- en letterkunde Nederlands, ervaring gewenst'
     }
   ];
 
   for (const job of sampleJobs) {
     try {
       await executeQuery(
-        `INSERT INTO jobs (title, requirements_text, grade, subject, hours, period_text, start_date, created_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
-        [job.title, job.requirements_text, job.grade, job.subject, job.hours, job.period_text, job.start_date]
+        `INSERT INTO jobs (title, vak, hours, classes, notes)
+         VALUES (?, ?, ?, ?, ?)`,
+        [job.title, job.vak, job.hours, job.classes, job.notes]
       );
       console.log(`✓ Created job: ${job.title}`);
     } catch (error) {
@@ -68,38 +84,32 @@ export async function seedDatabase() {
   // Create sample candidates
   const sampleCandidates = [
     {
-      first_name: 'Jan',
-      last_name: 'Peeters',
-      email: 'jan.peeters@example.com',
-      phone: '0471234567',
-      notes: 'Sterke kandidaat met veel ervaring'
+      name: 'Jan Peeters',
+      subjects: 'Wiskunde, Natuurkunde',
+      staff_notes: 'Sterke kandidaat met 5 jaar ervaring'
     },
     {
-      first_name: 'Marie',
-      last_name: 'Janssens',
-      email: 'marie.janssens@example.com',
-      phone: '0472345678',
-      notes: 'Pas afgestudeerd, enthousiast'
+      name: 'Marie Janssens',
+      subjects: 'Nederlands, Frans',
+      staff_notes: 'Pas afgestudeerd, zeer enthousiast'
     },
     {
-      first_name: 'Pieter',
-      last_name: 'De Vries',
-      email: 'pieter.devries@example.com',
-      phone: '0473456789',
-      notes: 'Goede referenties'
+      name: 'Pieter De Vries',
+      subjects: 'Wiskunde',
+      staff_notes: 'Goede referenties, solliciteert spontaan'
     }
   ];
 
   for (const candidate of sampleCandidates) {
     try {
       await executeQuery(
-        `INSERT INTO candidates (first_name, last_name, email, phone, notes)
-         VALUES (?, ?, ?, ?, ?)`,
-        [candidate.first_name, candidate.last_name, candidate.email, candidate.phone, candidate.notes]
+        `INSERT INTO candidates (name, subjects, staff_notes)
+         VALUES (?, ?, ?)`,
+        [candidate.name, candidate.subjects, candidate.staff_notes]
       );
-      console.log(`✓ Created candidate: ${candidate.first_name} ${candidate.last_name}`);
+      console.log(`✓ Created candidate: ${candidate.name}`);
     } catch (error) {
-      console.log(`→ Candidate ${candidate.first_name} ${candidate.last_name} might already exist`);
+      console.log(`→ Candidate ${candidate.name} might already exist`);
     }
   }
 
@@ -107,37 +117,33 @@ export async function seedDatabase() {
   const sampleApplications = [
     {
       candidate_id: 1,
-      source_email_subject: 'Sollicitatie Leraar Wiskunde',
-      source_email_from: 'jan.peeters@example.com',
+      source: 'email',
       received_at: '2025-01-05 10:30:00',
-      status: 'in_review',
+      created_by_user_id: 1,
       job_ids: [1]
     },
     {
       candidate_id: 2,
-      source_email_subject: 'Sollicitatie Leraar Nederlands',
-      source_email_from: 'marie.janssens@example.com',
+      source: 'manual',
       received_at: '2025-01-06 14:15:00',
-      status: 'new',
+      created_by_user_id: 1,
       job_ids: [2]
     },
     {
       candidate_id: 3,
-      source_email_subject: 'Sollicitatie voor openstaande vacatures',
-      source_email_from: 'pieter.devries@example.com',
+      source: 'email',
       received_at: '2025-01-07 09:00:00',
-      status: 'new',
-      job_ids: [1, 2]
+      created_by_user_id: 1,
+      job_ids: [1, 2]  // Kandidaat solliciteert voor beide vacatures
     }
   ];
 
   for (const application of sampleApplications) {
     try {
       const result = await executeQuery(
-        `INSERT INTO applications (candidate_id, source_email_subject, source_email_from, received_at, status, created_by)
-         VALUES (?, ?, ?, ?, ?, 1)`,
-        [application.candidate_id, application.source_email_subject, application.source_email_from,
-         application.received_at, application.status]
+        `INSERT INTO applications (candidate_id, source, received_at, created_by_user_id)
+         VALUES (?, ?, ?, ?)`,
+        [application.candidate_id, application.source, application.received_at, application.created_by_user_id]
       );
 
       const applicationId = result.lastInsertRowid;
@@ -150,17 +156,17 @@ export async function seedDatabase() {
         );
       }
 
-      console.log(`✓ Created application from ${application.source_email_from}`);
+      console.log(`✓ Created application for candidate ${application.candidate_id}`);
     } catch (error) {
-      console.log(`→ Application from ${application.source_email_from} might already exist`);
+      console.log(`→ Application for candidate ${application.candidate_id} might already exist`);
     }
   }
 
   // Create sample evaluation for first application
   try {
     await executeQuery(
-      `INSERT INTO evaluations (job_id, application_id, interview_date, interview_time, verdict, ranking_int, chosen_bool, evaluator_user_id)
-       VALUES (1, 1, '2025-01-15', '14:00', 'geschikt', 1, 1, 2)`,
+      `INSERT INTO evaluations (application_id, job_id, evaluator_user_id, decision, notes, next_step_id)
+       VALUES (1, 1, 2, 'yes', 'Uitstekende kandidaat met relevante ervaring', 1)`,
       []
     );
     console.log('✓ Created sample evaluation');
@@ -168,16 +174,21 @@ export async function seedDatabase() {
     console.log('→ Sample evaluation might already exist');
   }
 
-  // Create sample notification
+  // Create sample notifications (new job + new application)
   try {
     await executeQuery(
-      `INSERT INTO notifications (user_id, type, payload_json, is_read)
-       VALUES (2, 'new_application', '{"applicationId": 2, "candidateName": "Marie Janssens"}', 0)`,
+      `INSERT INTO notifications (user_id, type, related_id, message)
+       VALUES (2, 'new_job', 1, 'Nieuwe vacature: Leraar Wiskunde')`,
       []
     );
-    console.log('✓ Created sample notification');
+    await executeQuery(
+      `INSERT INTO notifications (user_id, type, related_id, message)
+       VALUES (2, 'new_application', 2, 'Nieuwe sollicitatie van Marie Janssens')`,
+      []
+    );
+    console.log('✓ Created sample notifications');
   } catch (error) {
-    console.log('→ Sample notification might already exist');
+    console.log('→ Sample notifications might already exist');
   }
 
   console.log('✓ Database seeded successfully with comprehensive test data');

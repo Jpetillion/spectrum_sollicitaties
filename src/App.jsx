@@ -13,6 +13,8 @@ import ApplicationDetailPage from './pages/ApplicationDetailPage.jsx';
 import CandidatesListPage from './pages/CandidatesListPage.jsx';
 import OutboxPage from './pages/OutboxPage.jsx';
 import MailDetailPage from './pages/MailDetailPage.jsx';
+import MfaSetupPage from './pages/MfaSetupPage.jsx';
+import MfaSettingsPage from './pages/MfaSettingsPage.jsx';
 import { api } from './lib/apiClient.js';
 
 // Import styles
@@ -71,6 +73,9 @@ function App() {
 
         <Route path="/mail/outbox" element={<OutboxPage />} />
         <Route path="/mail/outbox/:mailId" element={<MailDetailPage user={user} />} />
+
+        <Route path="/mfa-setup" element={<MfaSetupPage />} />
+        <Route path="/mfa-settings" element={<MfaSettingsPage />} />
 
         <Route path="/login" element={<Navigate to="/" />} />
         <Route path="*" element={<Navigate to="/" />} />

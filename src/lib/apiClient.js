@@ -98,7 +98,20 @@ export const api = {
   generateMail: (data) => request('/mail/generate', { method: 'POST', body: JSON.stringify(data) }),
   updateMailDraft: (id, data) => request(`/mail/outbox/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   approveMail: (id) => request(`/mail/outbox/${id}/approve`, { method: 'POST' }),
-  sendMail: (id) => request(`/mail/outbox/${id}/send`, { method: 'POST' })
+  sendMail: (id) => request(`/mail/outbox/${id}/send`, { method: 'POST' }),
+
+  // MFA
+  loginMfa: (tempToken, code, isBackupCode = false) =>
+    request('/auth/login/mfa', {
+      method: 'POST',
+      body: JSON.stringify({ tempToken, code, isBackupCode })
+    }),
+
+  mfaGenerateSetup: () => request('/mfa/setup/generate', { method: 'POST' }),
+  mfaVerifySetup: (token) => request('/mfa/setup/verify', { method: 'POST', body: JSON.stringify({ token }) }),
+  mfaDisable: (password) => request('/mfa/disable', { method: 'POST', body: JSON.stringify({ password }) }),
+  mfaGetStatus: () => request('/mfa/status'),
+  mfaRegenerateBackupCodes: (token) => request('/mfa/backup-codes/regenerate', { method: 'POST', body: JSON.stringify({ token }) })
 };
 
 export { ApiError };
