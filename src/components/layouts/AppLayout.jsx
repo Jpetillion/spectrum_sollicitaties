@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   House,
   Briefcase,
@@ -12,16 +12,33 @@ import {
 import { api } from '../../lib/apiClient.js';
 
 export default function AppLayout({ user, children }) {
-  const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationsRef = useRef(null);
 
   useEffect(() => {
     loadNotifications();
     const interval = setInterval(loadNotifications, 30000); // Refresh every 30s
     return () => clearInterval(interval);
   }, []);
+
+  // Close notifications dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
 
   const loadNotifications = async () => {
     try {
@@ -36,9 +53,12 @@ export default function AppLayout({ user, children }) {
   const handleLogout = async () => {
     try {
       await api.logout();
-      navigate('/login');
+      // Force a full page reload to clear all state
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if logout fails, redirect to login page
+      window.location.href = '/login';
     }
   };
 
@@ -97,59 +117,61 @@ export default function AppLayout({ user, children }) {
       <div className="main-content">
         <header className="topbar">
           <div className="topbar__actions">
-            <button
-              className="notification-button"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              <Bell size={24} weight={unreadCount > 0 ? 'fill' : 'regular'} />
-              {unreadCount > 0 && (
-                <span className="notification-badge">{unreadCount}</span>
+            <div ref={notificationsRef} style={{ position: 'relative' }}>
+              <button
+                className="notification-button"
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <Bell size={24} weight={unreadCount > 0 ? 'fill' : 'regular'} />
+                {unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount}</span>
+                )}
+              </button>
+
+              {showNotifications && (
+                <div className="notifications-dropdown">
+                  <div className="notifications-dropdown__header">
+                    <h3>Notificaties</h3>
+                    {unreadCount > 0 && (
+                      <button
+                        className="link-button"
+                        onClick={async () => {
+                          await api.markAllNotificationsRead();
+                          loadNotifications();
+                        }}
+                      >
+                        Alles markeren als gelezen
+                      </button>
+                    )}
+                  </div>
+                  <div className="notifications-dropdown__list">
+                    {notifications.length === 0 ? (
+                      <div className="notifications-empty">Geen notificaties</div>
+                    ) : (
+                      notifications.slice(0, 10).map(notif => (
+                        <div
+                          key={notif.id}
+                          className={`notification-item ${notif.is_read ? 'read' : 'unread'}`}
+                        >
+                          <p>{notif.payload_json?.message}</p>
+                          {!notif.is_read && (
+                            <button onClick={() => handleMarkAsRead(notif.id)}>
+                              Markeer gelezen
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             <button className="logout-button" onClick={handleLogout}>
               <SignOut size={24} />
               <span>Uitloggen</span>
             </button>
           </div>
-
-          {showNotifications && (
-            <div className="notifications-dropdown">
-              <div className="notifications-dropdown__header">
-                <h3>Notificaties</h3>
-                {unreadCount > 0 && (
-                  <button
-                    className="link-button"
-                    onClick={async () => {
-                      await api.markAllNotificationsRead();
-                      loadNotifications();
-                    }}
-                  >
-                    Alles markeren als gelezen
-                  </button>
-                )}
-              </div>
-              <div className="notifications-dropdown__list">
-                {notifications.length === 0 ? (
-                  <div className="notifications-empty">Geen notificaties</div>
-                ) : (
-                  notifications.slice(0, 10).map(notif => (
-                    <div
-                      key={notif.id}
-                      className={`notification-item ${notif.is_read ? 'read' : 'unread'}`}
-                    >
-                      <p>{notif.payload_json?.message}</p>
-                      {!notif.is_read && (
-                        <button onClick={() => handleMarkAsRead(notif.id)}>
-                          Markeer gelezen
-                        </button>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
         </header>
 
         <main className="page-content">
