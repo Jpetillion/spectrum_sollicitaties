@@ -11,7 +11,16 @@ const router = express.Router();
 router.get('/', requireAuth, async (req, res) => {
   try {
     const applications = await applicationsService.getAllApplications();
-    res.json(applications);
+
+    // Load jobs for each application
+    const applicationsWithJobs = await Promise.all(
+      applications.map(async (app) => {
+        const jobs = await applicationsService.getJobsForApplication(app.id);
+        return { ...app, jobs };
+      })
+    );
+
+    res.json(applicationsWithJobs);
   } catch (error) {
     console.error('Error fetching applications:', error);
     res.status(500).json({ error: 'Fout bij ophalen sollicitaties' });
@@ -39,35 +48,52 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/', requireRole(['admin']), async (req, res) => {
+router.post('/', requireRole(['staf', 'admin']), async (req, res) => {
   try {
     const { job_ids, ...applicationData } = req.body;
+
+    console.log('[POST /applications] Creating application:', { applicationData, job_ids, userId: req.session.userId });
 
     const applicationId = await applicationsService.createApplication(
       applicationData,
       req.session.userId
     );
 
+    console.log('[POST /applications] Application created with ID:', applicationId);
+
     if (job_ids && job_ids.length > 0) {
       await applicationsService.linkApplicationToJobs(applicationId, job_ids);
+      console.log('[POST /applications] Linked to jobs:', job_ids);
     }
 
     // Send notifications
     const candidate = await candidatesService.getCandidateById(applicationData.candidate_id);
-    const candidateName = `${candidate.first_name} ${candidate.last_name}`;
+    if (!candidate) {
+      console.error('[POST /applications] Candidate not found:', applicationData.candidate_id);
+      throw new Error('Kandidaat niet gevonden');
+    }
+    const candidateName = candidate.name;
     await notificationsService.notifyNewApplication(applicationId, candidateName);
 
     const application = await applicationsService.getApplicationById(applicationId);
     res.status(201).json(application);
   } catch (error) {
     console.error('Error creating application:', error);
-    res.status(500).json({ error: 'Fout bij aanmaken sollicitatie' });
+    res.status(500).json({ error: error.message || 'Fout bij aanmaken sollicitatie' });
   }
 });
 
-router.put('/:id', requireRole(['admin']), async (req, res) => {
+router.put('/:id', requireRole(['staf', 'admin', 'directie']), async (req, res) => {
   try {
     const { job_ids, ...applicationData } = req.body;
+
+    console.log('[PUT /applications/:id] Updating application:', {
+      id: req.params.id,
+      applicationData,
+      job_ids,
+      user: req.session.userId,
+      role: req.session.userRole
+    });
 
     const application = await applicationsService.updateApplication(req.params.id, applicationData);
 
@@ -75,9 +101,10 @@ router.put('/:id', requireRole(['admin']), async (req, res) => {
       await applicationsService.linkApplicationToJobs(req.params.id, job_ids);
     }
 
+    console.log('[PUT /applications/:id] Application updated successfully');
     res.json(application);
   } catch (error) {
-    console.error('Error updating application:', error);
+    console.error('[PUT /applications/:id] Error updating application:', error);
     res.status(500).json({ error: 'Fout bij bijwerken sollicitatie' });
   }
 });

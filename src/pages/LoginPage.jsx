@@ -117,6 +117,7 @@ export default function LoginPage({ onLogin }) {
             <p className="text-muted">Testgebruikers:</p>
             <p className="text-small">admin@hetspectrum.be / Welcome123!</p>
             <p className="text-small">directie@hetspectrum.be / Welcome123!</p>
+            <p className="text-small">staf@hetspectrum.be / Welcome123!</p>
           </div>
         )}
       </div>

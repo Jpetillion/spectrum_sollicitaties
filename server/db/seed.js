@@ -31,11 +31,9 @@ export async function seedDatabase() {
 
   // Create next_steps
   const nextSteps = [
-    { label: 'Volgend gesprek', sort_order: 1 },
-    { label: 'Proefles', sort_order: 2 },
-    { label: 'Contractbespreking', sort_order: 3 },
-    { label: 'Reserve houden', sort_order: 4 },
-    { label: 'Afwijzen – afgerond', sort_order: 5 }
+    { label: 'Mailen', sort_order: 1 },
+    { label: 'Bellen', sort_order: 2 },
+    { label: 'Gesprek', sort_order: 3 }
   ];
 
   for (const step of nextSteps) {

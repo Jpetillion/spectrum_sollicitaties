@@ -30,7 +30,7 @@ router.get('/outbox/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/generate', requireRole(['admin', 'directie']), async (req, res) => {
+router.post('/generate', requireRole(['admin', 'directie', 'staf']), async (req, res) => {
   try {
     const { application_id, job_id, template_type } = req.body;
 
@@ -43,7 +43,7 @@ router.post('/generate', requireRole(['admin', 'directie']), async (req, res) =>
       return res.status(404).json({ error: 'Sollicitatie niet gevonden' });
     }
 
-    const candidateName = `${application.first_name} ${application.last_name}`;
+    const candidateName = application.candidate_name;
     let jobTitle = 'de vacature';
 
     if (job_id) {
@@ -70,34 +70,45 @@ router.post('/generate', requireRole(['admin', 'directie']), async (req, res) =>
   }
 });
 
-router.put('/outbox/:id', requireRole(['admin', 'directie']), async (req, res) => {
+router.put('/outbox/:id', requireRole(['admin', 'staf']), async (req, res) => {
   try {
+    console.log('[MAIL API] PUT /outbox/:id called:', {
+      id: req.params.id,
+      body: req.body,
+      user: req.session?.userId,
+      role: req.session?.userRole
+    });
     const { subject, body } = req.body;
     await mailService.updateMailDraft(req.params.id, subject, body);
     const draft = await mailService.getMailDraftById(req.params.id);
+    console.log('[MAIL API] Draft updated successfully:', draft.id);
     res.json(draft);
   } catch (error) {
-    console.error('Error updating mail draft:', error);
+    console.error('[MAIL API] Error updating mail draft:', error);
     res.status(500).json({ error: 'Fout bij bijwerken mail' });
   }
 });
 
-router.post('/outbox/:id/approve', requireRole(['directie']), async (req, res) => {
+router.post('/outbox/:id/approve', requireRole(['directie', 'admin']), async (req, res) => {
   try {
+    console.log('[MAIL API] POST /outbox/:id/approve called:', req.params.id);
     await mailService.approveMailDraft(req.params.id, req.session.userId);
+    console.log('[MAIL API] Mail approved successfully');
     res.json({ message: 'Mail goedgekeurd' });
   } catch (error) {
-    console.error('Error approving mail:', error);
+    console.error('[MAIL API] Error approving mail:', error);
     res.status(500).json({ error: 'Fout bij goedkeuren mail' });
   }
 });
 
-router.post('/outbox/:id/send', requireRole(['directie']), async (req, res) => {
+router.post('/outbox/:id/send', requireRole(['directie', 'admin']), async (req, res) => {
   try {
+    console.log('[MAIL API] POST /outbox/:id/send called:', req.params.id);
     await mailService.markMailAsSent(req.params.id);
+    console.log('[MAIL API] Mail marked as sent successfully');
     res.json({ message: 'Mail gemarkeerd als verzonden' });
   } catch (error) {
-    console.error('Error marking mail as sent:', error);
+    console.error('[MAIL API] Error marking mail as sent:', error);
     res.status(500).json({ error: 'Fout bij verzenden mail' });
   }
 });

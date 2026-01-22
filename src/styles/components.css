@@ -91,35 +91,44 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--font-xs);
-  font-weight: var(--font-medium);
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+  text-transform: capitalize;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .badge--default {
-  background-color: var(--color-secondary-light);
-  color: var(--color-text);
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
 }
 
 .badge--success {
-  background-color: #dcfce7;
-  color: var(--color-success);
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #d1fae5;
 }
 
 .badge--warning {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fef3c7;
 }
 
 .badge--error {
-  background-color: #fee2e2;
-  color: var(--color-error);
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fee2e2;
 }
 
 .badge--info {
-  background-color: #cffafe;
-  color: var(--color-info);
+  background-color: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #dbeafe;
 }
 
 /* Card */

@@ -13,15 +13,24 @@ export const ROLE_LABELS = {
 };
 
 export const APPLICATION_STATUS = {
-  NEW: 'new',
-  IN_REVIEW: 'in_review',
-  DECISION_MADE: 'decision_made'
+  IN_BEHANDELING: 'in_behandeling',
+  AANVAARD: 'aanvaard',
+  GEWEIGERD: 'geweigerd',
+  RESERVE: 'reserve'
 };
 
 export const APPLICATION_STATUS_LABELS = {
-  [APPLICATION_STATUS.NEW]: 'Nieuw',
-  [APPLICATION_STATUS.IN_REVIEW]: 'In behandeling',
-  [APPLICATION_STATUS.DECISION_MADE]: 'Beslissing genomen'
+  [APPLICATION_STATUS.IN_BEHANDELING]: 'In behandeling',
+  [APPLICATION_STATUS.AANVAARD]: 'Aanvaard',
+  [APPLICATION_STATUS.GEWEIGERD]: 'Geweigerd',
+  [APPLICATION_STATUS.RESERVE]: 'Reserve'
+};
+
+export const STATUS_VARIANTS = {
+  in_behandeling: 'warning',
+  aanvaard: 'success',
+  geweigerd: 'error',
+  reserve: 'info'
 };
 
 export const VERDICT = {

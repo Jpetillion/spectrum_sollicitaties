@@ -27,7 +27,7 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/', requireRole(['admin', 'directie']), async (req, res) => {
+router.post('/', requireRole(['admin', 'directie', 'staf']), async (req, res) => {
   try {
     const jobId = await jobsService.createJob(req.body, req.session.userId);
     const job = await jobsService.getJobById(jobId);
@@ -38,7 +38,7 @@ router.post('/', requireRole(['admin', 'directie']), async (req, res) => {
   }
 });
 
-router.put('/:id', requireRole(['admin', 'directie']), async (req, res) => {
+router.put('/:id', requireRole(['admin', 'directie', 'staf']), async (req, res) => {
   try {
     const job = await jobsService.updateJob(req.params.id, req.body);
     res.json(job);

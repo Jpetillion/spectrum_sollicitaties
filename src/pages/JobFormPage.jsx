@@ -4,6 +4,7 @@ import { ArrowLeft } from '@phosphor-icons/react';
 import Button from '../components/atoms/Button.jsx';
 import Card from '../components/molecules/Card.jsx';
 import JobForm from '../components/organisms/JobForm.jsx';
+import { AlertModal } from '../components/molecules/Modal.jsx';
 import { api } from '../lib/apiClient.js';
 
 export default function JobFormPage() {
@@ -11,6 +12,7 @@ export default function JobFormPage() {
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(!!jobId);
+  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     if (jobId) {
@@ -24,7 +26,7 @@ export default function JobFormPage() {
       setJob(data);
     } catch (error) {
       console.error('Error loading job:', error);
-      alert('Fout bij laden vacature');
+      setAlert({ title: 'Fout', message: 'Fout bij laden vacature', variant: 'error' });
     } finally {
       setLoading(false);
     }
@@ -34,20 +36,33 @@ export default function JobFormPage() {
     try {
       if (jobId) {
         await api.updateJob(jobId, formData);
-        alert('Vacature bijgewerkt');
+        setAlert({
+          title: 'Gelukt',
+          message: 'Vacature bijgewerkt',
+          variant: 'success',
+          onClose: () => navigate(`/jobs/${jobId}`)
+        });
       } else {
         const newJob = await api.createJob(formData);
-        alert('Vacature aangemaakt');
-        navigate(`/jobs/${newJob.id}`);
-        return;
+        setAlert({
+          title: 'Gelukt',
+          message: 'Vacature aangemaakt',
+          variant: 'success',
+          onClose: () => navigate(`/jobs/${newJob.id}`)
+        });
       }
-      navigate(`/jobs/${jobId}`);
     } catch (error) {
-      alert('Fout bij opslaan: ' + error.message);
+      setAlert({ title: 'Fout', message: 'Fout bij opslaan: ' + error.message, variant: 'error' });
     }
   };
 
   if (loading) return <div className="loading">Laden...</div>;
+
+  const handleAlertClose = () => {
+    const onClose = alert?.onClose;
+    setAlert(null);
+    if (onClose) onClose();
+  };
 
   return (
     <div className="job-form-page">
@@ -65,6 +80,16 @@ export default function JobFormPage() {
           onCancel={() => navigate('/jobs')}
         />
       </Card>
+
+      {alert && (
+        <AlertModal
+          isOpen={true}
+          onClose={handleAlertClose}
+          title={alert.title}
+          message={alert.message}
+          variant={alert.variant}
+        />
+      )}
     </div>
   );
 }

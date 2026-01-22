@@ -7,7 +7,8 @@ import {
   Users,
   Envelope,
   Bell,
-  SignOut
+  SignOut,
+  Question
 } from '@phosphor-icons/react';
 import { api } from '../../lib/apiClient.js';
 
@@ -104,6 +105,11 @@ export default function AppLayout({ user, children }) {
             <Envelope size={20} weight="duotone" />
             <span>Mails</span>
           </Link>
+
+          <Link to="/help" className="nav-item">
+            <Question size={20} weight="duotone" />
+            <span>Hulp</span>
+          </Link>
         </nav>
 
         <div className="sidebar__footer">
@@ -153,7 +159,7 @@ export default function AppLayout({ user, children }) {
                           key={notif.id}
                           className={`notification-item ${notif.is_read ? 'read' : 'unread'}`}
                         >
-                          <p>{notif.payload_json?.message}</p>
+                          <p>{notif.message}</p>
                           {!notif.is_read && (
                             <button onClick={() => handleMarkAsRead(notif.id)}>
                               Markeer gelezen

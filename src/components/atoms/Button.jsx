@@ -6,6 +6,7 @@ export default function Button({
   disabled = false,
   onClick,
   className = '',
+  as,
   ...props
 }) {
   const baseClasses = 'button';
@@ -13,15 +14,17 @@ export default function Button({
   const sizeClass = `button--${size}`;
   const disabledClass = disabled ? 'button--disabled' : '';
 
+  const Component = as || 'button';
+  const elementProps = Component === 'button' ? { type, disabled } : {};
+
   return (
-    <button
-      type={type}
+    <Component
       className={`${baseClasses} ${variantClass} ${sizeClass} ${disabledClass} ${className}`.trim()}
-      disabled={disabled}
       onClick={onClick}
+      {...elementProps}
       {...props}
     >
       {children}
-    </button>
+    </Component>
   );
 }

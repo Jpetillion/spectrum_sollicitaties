@@ -6,7 +6,6 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import JobsListPage from './pages/JobsListPage.jsx';
 import JobDetailPage from './pages/JobDetailPage.jsx';
 import JobFormPage from './pages/JobFormPage.jsx';
-import SelectionOverviewPage from './pages/SelectionOverviewPage.jsx';
 import ApplicationsListPage from './pages/ApplicationsListPage.jsx';
 import ApplicationFormPage from './pages/ApplicationFormPage.jsx';
 import ApplicationDetailPage from './pages/ApplicationDetailPage.jsx';
@@ -15,6 +14,7 @@ import OutboxPage from './pages/OutboxPage.jsx';
 import MailDetailPage from './pages/MailDetailPage.jsx';
 import MfaSetupPage from './pages/MfaSetupPage.jsx';
 import MfaSettingsPage from './pages/MfaSettingsPage.jsx';
+import HelpPage from './pages/HelpPage.jsx';
 import { api } from './lib/apiClient.js';
 
 // Import styles
@@ -63,7 +63,6 @@ function App() {
         <Route path="/jobs/new" element={<JobFormPage />} />
         <Route path="/jobs/:jobId" element={<JobDetailPage user={user} />} />
         <Route path="/jobs/:jobId/edit" element={<JobFormPage />} />
-        <Route path="/jobs/:jobId/selection" element={<SelectionOverviewPage />} />
 
         <Route path="/applications" element={<ApplicationsListPage user={user} />} />
         <Route path="/applications/new" element={<ApplicationFormPage />} />
@@ -76,6 +75,8 @@ function App() {
 
         <Route path="/mfa-setup" element={<MfaSetupPage />} />
         <Route path="/mfa-settings" element={<MfaSettingsPage />} />
+
+        <Route path="/help" element={<HelpPage />} />
 
         <Route path="/login" element={<Navigate to="/" />} />
         <Route path="*" element={<Navigate to="/" />} />

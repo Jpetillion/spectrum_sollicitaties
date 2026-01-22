@@ -18,6 +18,7 @@ import applicationsRoutes from './routes-api/applications.js';
 import evaluationsRoutes from './routes-api/evaluations.js';
 import notificationsRoutes from './routes-api/notifications.js';
 import mailRoutes from './routes-api/mail.js';
+import documentsRoutes from './routes-api/documents.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -63,6 +64,7 @@ app.use('/api/applications', applicationsRoutes);
 app.use('/api/evaluations', evaluationsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/mail', mailRoutes);
+app.use('/api/documents', documentsRoutes);
 
 // SSR - Server-Side Rendering
 if (isDev) {

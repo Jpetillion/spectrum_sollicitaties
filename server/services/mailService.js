@@ -67,9 +67,9 @@ export async function createMailDraft(applicationId, jobId, templateType, candid
     .replace('[FUNCTIE]', jobTitle);
 
   const result = await executeQuery(
-    `INSERT INTO mail_drafts (application_id, job_id, template_type, subject, body, status, created_by)
-     VALUES (?, ?, ?, ?, ?, 'draft', ?)`,
-    [applicationId, jobId, templateType, subject, body, createdBy]
+    `INSERT INTO mail_drafts (application_id, job_id, subject, body, status, generated_from_decision)
+     VALUES (?, ?, ?, ?, 'draft', ?)`,
+    [applicationId, jobId, subject, body, templateType]
   );
 
   return result.lastInsertRowid;
@@ -78,14 +78,12 @@ export async function createMailDraft(applicationId, jobId, templateType, candid
 export async function getMailDrafts(status = null) {
   let query = `
     SELECT md.*,
-           c.first_name, c.last_name,
-           j.title as job_title,
-           u.name as created_by_name
+           c.name as candidate_name,
+           j.title as job_title
     FROM mail_drafts md
     JOIN applications a ON md.application_id = a.id
     JOIN candidates c ON a.candidate_id = c.id
     LEFT JOIN jobs j ON md.job_id = j.id
-    LEFT JOIN users u ON md.created_by = u.id
   `;
 
   const params = [];
@@ -94,7 +92,7 @@ export async function getMailDrafts(status = null) {
     params.push(status);
   }
 
-  query += ' ORDER BY md.created_at DESC';
+  query += ' ORDER BY md.generated_at DESC';
 
   const result = await executeQuery(query, params);
   return result.rows;
@@ -103,7 +101,7 @@ export async function getMailDrafts(status = null) {
 export async function getMailDraftById(id) {
   const result = await executeQuery(
     `SELECT md.*,
-            c.first_name, c.last_name, c.email as candidate_email,
+            c.name as candidate_name,
             j.title as job_title
      FROM mail_drafts md
      JOIN applications a ON md.application_id = a.id
@@ -123,9 +121,10 @@ export async function updateMailDraft(id, subject, body) {
 }
 
 export async function approveMailDraft(id, approvedBy) {
+  // Schema doesn't have approved_by field - just update status to sent
   await executeQuery(
-    'UPDATE mail_drafts SET status = ?, approved_by = ? WHERE id = ?',
-    ['approved', approvedBy, id]
+    'UPDATE mail_drafts SET status = ? WHERE id = ?',
+    ['sent', id]
   );
 }
 

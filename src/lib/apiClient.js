@@ -96,9 +96,18 @@ export const api = {
   getMailDrafts: (status) => request(`/mail/outbox${status ? `?status=${status}` : ''}`),
   getMailDraft: (id) => request(`/mail/outbox/${id}`),
   generateMail: (data) => request('/mail/generate', { method: 'POST', body: JSON.stringify(data) }),
-  updateMailDraft: (id, data) => request(`/mail/outbox/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  approveMail: (id) => request(`/mail/outbox/${id}/approve`, { method: 'POST' }),
-  sendMail: (id) => request(`/mail/outbox/${id}/send`, { method: 'POST' }),
+  updateMailDraft: (id, subject, body) => {
+    console.log('[API] updateMailDraft called:', { id, subject, body });
+    return request(`/mail/outbox/${id}`, { method: 'PUT', body: JSON.stringify({ subject, body }) });
+  },
+  approveMail: (id) => {
+    console.log('[API] approveMail called:', id);
+    return request(`/mail/outbox/${id}/approve`, { method: 'POST' });
+  },
+  sendMail: (id) => {
+    console.log('[API] sendMail called:', id);
+    return request(`/mail/outbox/${id}/send`, { method: 'POST' });
+  },
 
   // MFA
   loginMfa: (tempToken, code, isBackupCode = false) =>
@@ -111,7 +120,30 @@ export const api = {
   mfaVerifySetup: (token) => request('/mfa/setup/verify', { method: 'POST', body: JSON.stringify({ token }) }),
   mfaDisable: (password) => request('/mfa/disable', { method: 'POST', body: JSON.stringify({ password }) }),
   mfaGetStatus: () => request('/mfa/status'),
-  mfaRegenerateBackupCodes: (token) => request('/mfa/backup-codes/regenerate', { method: 'POST', body: JSON.stringify({ token }) })
+  mfaRegenerateBackupCodes: (token) => request('/mfa/backup-codes/regenerate', { method: 'POST', body: JSON.stringify({ token }) }),
+
+  // Documents
+  uploadDocument: async (candidateId, type, file) => {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('type', type);
+
+    const response = await fetch(`/api/documents/candidates/${candidateId}/upload`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new ApiError(error.error || 'Upload failed', response.status);
+    }
+
+    return response.json();
+  },
+
+  getDocumentsByCandidate: (candidateId) => request(`/documents/candidates/${candidateId}`),
+  deleteDocument: (id) => request(`/documents/${id}`, { method: 'DELETE' })
 };
 
 export { ApiError };

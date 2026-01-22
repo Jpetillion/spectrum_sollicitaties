@@ -11,8 +11,18 @@ export default function MailPreview({ mail, onUpdate, onApprove, onSend, canEdit
   const [subject, setSubject] = useState(mail.subject);
   const [body, setBody] = useState(mail.body);
 
+  console.log('[MailPreview] Rendering with:', {
+    mailId: mail.id,
+    status: mail.status,
+    canEdit,
+    canApprove,
+    showSendButton: canApprove && mail.status === 'draft'
+  });
+
   const handleSave = async () => {
+    console.log('[MailPreview] handleSave called:', { mailId: mail.id, subject, body });
     await onUpdate(mail.id, { subject, body });
+    console.log('[MailPreview] Save completed');
     setIsEditing(false);
   };
 
@@ -26,8 +36,8 @@ export default function MailPreview({ mail, onUpdate, onApprove, onSend, canEdit
   };
 
   return (
-    <div className="mail-preview">
-      <div className="mail-preview__header">
+    <div className="mail-preview" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
         <Badge variant={getStatusVariant(mail.status)}>
           {MAIL_STATUS_LABELS[mail.status]}
         </Badge>
@@ -39,7 +49,7 @@ export default function MailPreview({ mail, onUpdate, onApprove, onSend, canEdit
       </div>
 
       {isEditing ? (
-        <div className="mail-preview__edit">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <FormRow label="Onderwerp">
             <Input
               value={subject}
@@ -53,7 +63,7 @@ export default function MailPreview({ mail, onUpdate, onApprove, onSend, canEdit
               rows={12}
             />
           </FormRow>
-          <div className="form-actions">
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
             <Button onClick={handleSave}>Opslaan</Button>
             <Button variant="secondary" onClick={() => setIsEditing(false)}>
               Annuleren
@@ -61,33 +71,45 @@ export default function MailPreview({ mail, onUpdate, onApprove, onSend, canEdit
           </div>
         </div>
       ) : (
-        <div className="mail-preview__content">
-          <div className="mail-preview__field">
-            <strong>Aan:</strong> {mail.candidate_email}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ padding: '0.5rem 0' }}>
+            <strong style={{ color: '#374151', marginRight: '0.5rem' }}>Kandidaat:</strong>
+            <span>{mail.candidate_name}</span>
           </div>
-          <div className="mail-preview__field">
-            <strong>Onderwerp:</strong> {mail.subject}
+          <div style={{ padding: '0.5rem 0' }}>
+            <strong style={{ color: '#374151', marginRight: '0.5rem' }}>Onderwerp:</strong>
+            <span>{mail.subject}</span>
           </div>
-          <div className="mail-preview__body">
+          <div style={{
+            marginTop: '1rem',
+            padding: '1.5rem',
+            backgroundColor: '#f9fafb',
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb'
+          }}>
             {mail.body.split('\n').map((line, i) => (
-              <p key={i}>{line}</p>
+              <p key={i} style={{ margin: line ? '0 0 1rem 0' : '0.5rem 0' }}>{line || '\u00A0'}</p>
             ))}
           </div>
         </div>
       )}
 
-      <div className="mail-preview__actions">
-        {canApprove && mail.status === 'draft' && (
-          <Button onClick={() => onApprove(mail.id)} variant="primary">
-            Goedkeuren
-          </Button>
-        )}
-        {canApprove && mail.status === 'approved' && (
-          <Button onClick={() => onSend(mail.id)} variant="success">
+      {canApprove && mail.status === 'draft' && (
+        <div style={{
+          marginTop: '1.5rem',
+          paddingTop: '1.5rem',
+          borderTop: '2px solid #e5e7eb',
+          display: 'flex',
+          gap: '1rem'
+        }}>
+          <Button onClick={() => {
+            console.log('[MailPreview] Send button clicked, mailId:', mail.id);
+            onSend(mail.id);
+          }} variant="success">
             Markeer als verzonden
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

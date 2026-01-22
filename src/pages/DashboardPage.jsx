@@ -5,7 +5,6 @@ import Card from '../components/molecules/Card.jsx';
 import Table from '../components/molecules/Table.jsx';
 import { api } from '../lib/apiClient.js';
 import { formatDate } from '../lib/format.js';
-import { APPLICATION_STATUS_LABELS } from '../../shared/constants.js';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({ jobs: 0, applications: 0, candidates: 0 });
@@ -43,11 +42,11 @@ export default function DashboardPage() {
   const applicationColumns = [
     {
       header: 'Kandidaat',
-      render: (app) => `${app.first_name} ${app.last_name}`
+      render: (app) => app.candidate_name || '-'
     },
     {
-      header: 'Status',
-      render: (app) => APPLICATION_STATUS_LABELS[app.status]
+      header: 'Vakken',
+      render: (app) => app.candidate_subjects || '-'
     },
     {
       header: 'Datum',
@@ -57,7 +56,10 @@ export default function DashboardPage() {
 
   const jobColumns = [
     { header: 'Titel', field: 'title' },
-    { header: 'Vak', field: 'subject' },
+    {
+      header: 'Vak',
+      render: (job) => job.vak || '-'
+    },
     {
       header: 'Sollicitaties',
       render: (job) => job.application_count || 0

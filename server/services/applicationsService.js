@@ -2,12 +2,15 @@ import { executeQuery, executeTransaction } from '../db/client.js';
 
 export async function getAllApplications() {
   const result = await executeQuery(`
-    SELECT a.*,
-           c.first_name, c.last_name, c.email as candidate_email,
-           u.name as creator_name
+    SELECT a.id, a.candidate_id, a.source, a.received_at, a.created_at, a.created_by_user_id,
+           a.status, a.next_step,
+           c.name as candidate_name,
+           c.subjects as candidate_subjects,
+           c.staff_notes,
+           u.email as creator_email
     FROM applications a
     JOIN candidates c ON a.candidate_id = c.id
-    LEFT JOIN users u ON a.created_by = u.id
+    LEFT JOIN users u ON a.created_by_user_id = u.id
     ORDER BY a.created_at DESC
   `);
   return result.rows;
@@ -15,8 +18,11 @@ export async function getAllApplications() {
 
 export async function getApplicationById(id) {
   const result = await executeQuery(
-    `SELECT a.*,
-            c.first_name, c.last_name, c.email as candidate_email, c.phone, c.notes
+    `SELECT a.id, a.candidate_id, a.source, a.received_at, a.created_at, a.created_by_user_id,
+            a.status, a.next_step,
+            c.name as candidate_name,
+            c.subjects as candidate_subjects,
+            c.staff_notes
      FROM applications a
      JOIN candidates c ON a.candidate_id = c.id
      WHERE a.id = ?`,
@@ -27,14 +33,12 @@ export async function getApplicationById(id) {
 
 export async function createApplication(applicationData, createdBy) {
   const result = await executeQuery(
-    `INSERT INTO applications (candidate_id, source_email_subject, source_email_from, received_at, status, created_by)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO applications (candidate_id, source, received_at, created_by_user_id)
+     VALUES (?, ?, ?, ?)`,
     [
       applicationData.candidate_id,
-      applicationData.source_email_subject,
-      applicationData.source_email_from,
-      applicationData.received_at,
-      applicationData.status || 'new',
+      applicationData.source || 'manual',
+      applicationData.received_at || new Date().toISOString(),
       createdBy
     ]
   );
@@ -42,17 +46,35 @@ export async function createApplication(applicationData, createdBy) {
 }
 
 export async function updateApplication(id, applicationData) {
+  const updates = [];
+  const params = [];
+
+  if (applicationData.source !== undefined) {
+    updates.push('source = ?');
+    params.push(applicationData.source);
+  }
+  if (applicationData.received_at !== undefined) {
+    updates.push('received_at = ?');
+    params.push(applicationData.received_at);
+  }
+  if (applicationData.status !== undefined) {
+    updates.push('status = ?');
+    params.push(applicationData.status);
+  }
+  if (applicationData.next_step !== undefined) {
+    updates.push('next_step = ?');
+    params.push(applicationData.next_step);
+  }
+
+  if (updates.length === 0) {
+    return await getApplicationById(id);
+  }
+
+  params.push(id);
+
   await executeQuery(
-    `UPDATE applications
-     SET source_email_subject = ?, source_email_from = ?, received_at = ?, status = ?
-     WHERE id = ?`,
-    [
-      applicationData.source_email_subject,
-      applicationData.source_email_from,
-      applicationData.received_at,
-      applicationData.status,
-      id
-    ]
+    `UPDATE applications SET ${updates.join(', ')} WHERE id = ?`,
+    params
   );
   return await getApplicationById(id);
 }
@@ -88,8 +110,10 @@ export async function getJobsForApplication(applicationId) {
 
 export async function getApplicationsForJob(jobId) {
   const result = await executeQuery(
-    `SELECT a.*,
-            c.first_name, c.last_name, c.email as candidate_email
+    `SELECT a.id, a.candidate_id, a.source, a.received_at, a.created_at, a.created_by_user_id,
+            a.status, a.next_step,
+            c.name as candidate_name,
+            c.subjects as candidate_subjects
      FROM applications a
      JOIN candidates c ON a.candidate_id = c.id
      JOIN application_jobs aj ON a.id = aj.application_id

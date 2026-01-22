@@ -5,7 +5,7 @@ export async function getEvaluationsForJob(jobId) {
     `SELECT e.*,
             a.id as application_id,
             c.first_name, c.last_name,
-            u.name as evaluator_name
+            u.email as evaluator_email
      FROM evaluations e
      JOIN applications a ON e.application_id = a.id
      JOIN candidates c ON a.candidate_id = c.id
@@ -73,7 +73,7 @@ export async function deleteEvaluation(id) {
 
 export async function getSignoffsForJob(jobId) {
   const result = await executeQuery(
-    `SELECT s.*, u.name as signed_by_name
+    `SELECT s.*, u.email as signed_by_email
      FROM selection_signoffs s
      JOIN users u ON s.signed_by_user_id = u.id
      WHERE s.job_id = ?`,

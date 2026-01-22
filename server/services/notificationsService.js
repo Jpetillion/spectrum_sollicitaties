@@ -1,9 +1,9 @@
 import { executeQuery } from '../db/client.js';
 
-export async function createNotification(userId, type, payload) {
+export async function createNotification(userId, type, data) {
   const result = await executeQuery(
-    'INSERT INTO notifications (user_id, type, payload_json) VALUES (?, ?, ?)',
-    [userId, type, JSON.stringify(payload)]
+    'INSERT INTO notifications (user_id, type, related_id, message) VALUES (?, ?, ?, ?)',
+    [userId, type, data.related_id || null, data.message]
   );
   return result.lastInsertRowid;
 }
@@ -16,10 +16,7 @@ export async function getNotificationsForUser(userId, limit = 50) {
      LIMIT ?`,
     [userId, limit]
   );
-  return result.rows.map(row => ({
-    ...row,
-    payload_json: JSON.parse(row.payload_json || '{}')
-  }));
+  return result.rows;
 }
 
 export async function markNotificationAsRead(id) {
@@ -41,13 +38,12 @@ export async function getUnreadCount(userId) {
 export async function notifyNewApplication(applicationId, candidateName) {
   // Get all directie and staf users
   const users = await executeQuery(
-    "SELECT id FROM users WHERE role IN ('directie', 'staf', 'psycholoog')"
+    "SELECT id FROM users WHERE role IN ('directie', 'staf')"
   );
 
   for (const user of users.rows) {
     await createNotification(user.id, 'new_application', {
-      application_id: applicationId,
-      candidate_name: candidateName,
+      related_id: applicationId,
       message: `Nieuwe sollicitatie van ${candidateName}`
     });
   }

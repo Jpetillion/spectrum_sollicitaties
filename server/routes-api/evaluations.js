@@ -19,7 +19,7 @@ router.get('/jobs/:jobId', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/', requireRole(['admin', 'directie', 'staf', 'psycholoog']), async (req, res) => {
+router.post('/', requireRole(['admin', 'directie']), async (req, res) => {
   try {
     const evaluationId = await evaluationsService.createOrUpdateEvaluation(
       req.body,
@@ -44,10 +44,10 @@ router.delete('/:id', requireRole(['admin', 'directie']), async (req, res) => {
   }
 });
 
-router.post('/jobs/:jobId/signoff', requireRole(['directie', 'psycholoog']), async (req, res) => {
+router.post('/jobs/:jobId/signoff', requireRole(['directie', 'admin']), async (req, res) => {
   try {
     const userRole = req.session.userRole;
-    const signoffRole = userRole === 'directie' ? 'directie' : 'psycholoog';
+    const signoffRole = userRole === 'directie' ? 'directie' : 'admin';
 
     const signoffId = await evaluationsService.addSignoff(
       req.params.jobId,

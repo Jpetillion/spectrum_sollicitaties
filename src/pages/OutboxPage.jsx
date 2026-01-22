@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Badge from '../components/atoms/Badge.jsx';
+import Input from '../components/atoms/Input.jsx';
 import Table from '../components/molecules/Table.jsx';
 import { api } from '../lib/apiClient.js';
 import { formatDateTime } from '../lib/format.js';
@@ -8,7 +9,8 @@ import { MAIL_TEMPLATE_LABELS, MAIL_STATUS_LABELS } from '../../shared/constants
 
 export default function OutboxPage() {
   const navigate = useNavigate();
-  const [mails, setMails] = useState([]);
+  const [allMails, setAllMails] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
 
@@ -20,7 +22,7 @@ export default function OutboxPage() {
     try {
       const filterStatus = filter === 'all' ? null : filter;
       const data = await api.getMailDrafts(filterStatus);
-      setMails(data);
+      setAllMails(data);
     } catch (error) {
       console.error('Error loading mails:', error);
     } finally {
@@ -28,10 +30,21 @@ export default function OutboxPage() {
     }
   };
 
+  // Live filter mails based on search term
+  const mails = searchTerm
+    ? allMails.filter(mail => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          mail.candidate_name?.toLowerCase().includes(searchLower) ||
+          mail.subject?.toLowerCase().includes(searchLower) ||
+          mail.body?.toLowerCase().includes(searchLower)
+        );
+      })
+    : allMails;
+
   const getStatusVariant = (status) => {
     switch (status) {
       case 'draft': return 'warning';
-      case 'approved': return 'info';
       case 'sent': return 'success';
       default: return 'default';
     }
@@ -40,11 +53,11 @@ export default function OutboxPage() {
   const columns = [
     {
       header: 'Kandidaat',
-      render: (mail) => `${mail.first_name} ${mail.last_name}`
+      render: (mail) => mail.candidate_name || '-'
     },
     {
       header: 'Type',
-      render: (mail) => MAIL_TEMPLATE_LABELS[mail.template_type]
+      render: (mail) => mail.generated_from_decision ? MAIL_TEMPLATE_LABELS[mail.generated_from_decision] : '-'
     },
     {
       header: 'Status',
@@ -72,6 +85,15 @@ export default function OutboxPage() {
         <h1>Mails - Outbox</h1>
       </div>
 
+      <div className="search-bar">
+        <Input
+          type="search"
+          placeholder="Zoek mails op kandidaat, onderwerp of inhoud..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       <div className="filter-bar">
         <button
           className={`filter-button ${filter === 'all' ? 'active' : ''}`}
@@ -86,12 +108,6 @@ export default function OutboxPage() {
           Concept
         </button>
         <button
-          className={`filter-button ${filter === 'approved' ? 'active' : ''}`}
-          onClick={() => setFilter('approved')}
-        >
-          Goedgekeurd
-        </button>
-        <button
           className={`filter-button ${filter === 'sent' ? 'active' : ''}`}
           onClick={() => setFilter('sent')}
         >
@@ -103,7 +119,7 @@ export default function OutboxPage() {
         columns={columns}
         data={mails}
         onRowClick={(mail) => navigate(`/mail/outbox/${mail.id}`)}
-        emptyMessage="Geen mails"
+        emptyMessage="Nog geen e-mails. Wijzig de status van een sollicitatie om een e-mail te genereren."
       />
     </div>
   );

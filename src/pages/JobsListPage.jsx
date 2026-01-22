@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from '@phosphor-icons/react';
 import Button from '../components/atoms/Button.jsx';
+import Input from '../components/atoms/Input.jsx';
 import Table from '../components/molecules/Table.jsx';
 import { api } from '../lib/apiClient.js';
 import { formatDate } from '../lib/format.js';
 
 export default function JobsListPage({ user }) {
-  const [jobs, setJobs] = useState([]);
+  const [allJobs, setAllJobs] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +19,7 @@ export default function JobsListPage({ user }) {
   const loadJobs = async () => {
     try {
       const data = await api.getJobs();
-      setJobs(data);
+      setAllJobs(data);
     } catch (error) {
       console.error('Error loading jobs:', error);
     } finally {
@@ -25,20 +27,38 @@ export default function JobsListPage({ user }) {
     }
   };
 
+  // Live filter jobs based on search term
+  const jobs = searchTerm
+    ? allJobs.filter(job => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+          job.title?.toLowerCase().includes(searchLower) ||
+          job.vak?.toLowerCase().includes(searchLower) ||
+          job.classes?.toLowerCase().includes(searchLower) ||
+          job.notes?.toLowerCase().includes(searchLower)
+        );
+      })
+    : allJobs;
+
   const canManageJobs = user?.role === 'admin' || user?.role === 'directie';
 
   const columns = [
     { header: 'Titel', field: 'title' },
-    { header: 'Vak', field: 'subject' },
-    { header: 'Graad', field: 'grade' },
-    { header: 'Uren', field: 'hours' },
     {
-      header: 'Startdatum',
-      render: (job) => formatDate(job.start_date)
+      header: 'Vak',
+      render: (job) => job.vak || '-'
     },
     {
-      header: 'Sollicitaties',
-      render: (job) => job.application_count || 0
+      header: 'Uren',
+      render: (job) => job.hours || '-'
+    },
+    {
+      header: 'Klassen',
+      render: (job) => job.classes || '-'
+    },
+    {
+      header: 'Aangemaakt',
+      render: (job) => formatDate(job.created_at)
     }
   ];
 
@@ -56,6 +76,15 @@ export default function JobsListPage({ user }) {
             </Button>
           </Link>
         )}
+      </div>
+
+      <div className="search-bar">
+        <Input
+          type="search"
+          placeholder="Zoek vacatures op titel, vak, klassen of notities..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <Table

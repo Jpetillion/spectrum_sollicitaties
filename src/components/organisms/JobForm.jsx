@@ -7,12 +7,10 @@ import Button from '../atoms/Button.jsx';
 export default function JobForm({ initialData = {}, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     title: initialData.title || '',
-    requirements_text: initialData.requirements_text || '',
-    grade: initialData.grade || '',
-    subject: initialData.subject || '',
+    vak: initialData.vak || '',
     hours: initialData.hours || '',
-    period_text: initialData.period_text || '',
-    start_date: initialData.start_date || ''
+    classes: initialData.classes || '',
+    notes: initialData.notes || ''
   });
 
   const [errors, setErrors] = useState({});
@@ -28,8 +26,6 @@ export default function JobForm({ initialData = {}, onSubmit, onCancel }) {
   const validate = () => {
     const newErrors = {};
     if (!formData.title.trim()) newErrors.title = 'Titel is verplicht';
-    if (!formData.grade.trim()) newErrors.grade = 'Graad is verplicht';
-    if (!formData.subject.trim()) newErrors.subject = 'Vak is verplicht';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -54,34 +50,13 @@ export default function JobForm({ initialData = {}, onSubmit, onCancel }) {
         />
       </FormRow>
 
-      <FormRow label="Vereisten" htmlFor="requirements_text">
-        <Textarea
-          id="requirements_text"
-          name="requirements_text"
-          value={formData.requirements_text}
-          onChange={handleChange}
-          placeholder="Omschrijf de vereisten voor deze functie"
-          rows={4}
-        />
-      </FormRow>
-
-      <FormRow label="Graad" htmlFor="grade" required error={errors.grade}>
+      <FormRow label="Vak" htmlFor="vak">
         <Input
-          id="grade"
-          name="grade"
-          value={formData.grade}
+          id="vak"
+          name="vak"
+          value={formData.vak}
           onChange={handleChange}
-          placeholder="bijv. Secundair onderwijs"
-        />
-      </FormRow>
-
-      <FormRow label="Vak" htmlFor="subject" required error={errors.subject}>
-        <Input
-          id="subject"
-          name="subject"
-          value={formData.subject}
-          onChange={handleChange}
-          placeholder="bijv. Wiskunde"
+          placeholder="bijv. Wiskunde, Nederlands"
         />
       </FormRow>
 
@@ -97,23 +72,24 @@ export default function JobForm({ initialData = {}, onSubmit, onCancel }) {
         />
       </FormRow>
 
-      <FormRow label="Periode" htmlFor="period_text">
+      <FormRow label="Klassen" htmlFor="classes">
         <Input
-          id="period_text"
-          name="period_text"
-          value={formData.period_text}
+          id="classes"
+          name="classes"
+          value={formData.classes}
           onChange={handleChange}
-          placeholder="bijv. Schooljaar 2025-2026"
+          placeholder="bijv. 5e-6e jaar"
         />
       </FormRow>
 
-      <FormRow label="Startdatum" htmlFor="start_date">
-        <Input
-          id="start_date"
-          name="start_date"
-          type="date"
-          value={formData.start_date}
+      <FormRow label="Opmerkingen" htmlFor="notes">
+        <Textarea
+          id="notes"
+          name="notes"
+          value={formData.notes}
           onChange={handleChange}
+          placeholder="Extra informatie over de vacature"
+          rows={4}
         />
       </FormRow>
 

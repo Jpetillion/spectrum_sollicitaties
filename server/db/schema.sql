@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS applications (
   candidate_id INTEGER NOT NULL,
   created_by_user_id INTEGER,
   source TEXT CHECK(source IN ('email', 'manual')),
+  status TEXT DEFAULT 'in_behandeling' CHECK(status IN ('in_behandeling', 'aanvaard', 'geweigerd', 'reserve')),
+  next_step TEXT,
   received_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (candidate_id) REFERENCES candidates(id),

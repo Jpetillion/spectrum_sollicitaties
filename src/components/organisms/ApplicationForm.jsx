@@ -4,30 +4,25 @@ import Input from '../atoms/Input.jsx';
 import Select from '../atoms/Select.jsx';
 import Textarea from '../atoms/Textarea.jsx';
 import Button from '../atoms/Button.jsx';
+import { AlertModal } from '../molecules/Modal.jsx';
 import { api } from '../../lib/apiClient.js';
-import { APPLICATION_STATUS } from '../../../shared/constants.js';
 
 export default function ApplicationForm({ initialData = {}, onSubmit, onCancel }) {
   const [candidates, setCandidates] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [selectedJobs, setSelectedJobs] = useState(initialData.job_ids || []);
+  const [alert, setAlert] = useState(null);
 
   const [formData, setFormData] = useState({
     candidate_id: initialData.candidate_id || '',
-    source_email_subject: initialData.source_email_subject || '',
-    source_email_from: initialData.source_email_from || '',
-    received_at: initialData.received_at || '',
-    status: initialData.status || APPLICATION_STATUS.NEW
   });
 
   const [errors, setErrors] = useState({});
   const [showNewCandidate, setShowNewCandidate] = useState(false);
   const [newCandidate, setNewCandidate] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    notes: ''
+    name: '',
+    subjects: '',
+    staff_notes: ''
   });
 
   useEffect(() => {
@@ -74,16 +69,17 @@ export default function ApplicationForm({ initialData = {}, onSubmit, onCancel }
       setCandidates(prev => [...prev, candidate]);
       setFormData(prev => ({ ...prev, candidate_id: candidate.id }));
       setShowNewCandidate(false);
-      setNewCandidate({ first_name: '', last_name: '', email: '', phone: '', notes: '' });
+      setNewCandidate({ name: '', subjects: '', staff_notes: '' });
+      setAlert({ title: 'Gelukt', message: 'Kandidaat aangemaakt', variant: 'success' });
     } catch (error) {
-      alert('Fout bij aanmaken kandidaat: ' + error.message);
+      setAlert({ title: 'Fout', message: 'Fout bij aanmaken kandidaat: ' + error.message, variant: 'error' });
     }
   };
 
   const validate = () => {
     const newErrors = {};
     if (!formData.candidate_id) newErrors.candidate_id = 'Selecteer of maak een kandidaat aan';
-    if (selectedJobs.length === 0) newErrors.jobs = 'Selecteer minstens één vacature';
+    // Vacatures zijn optioneel (spontane sollicitatie mogelijk)
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -97,128 +93,108 @@ export default function ApplicationForm({ initialData = {}, onSubmit, onCancel }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="application-form">
-      <FormRow label="Kandidaat" required error={errors.candidate_id}>
-        {!showNewCandidate ? (
-          <>
-            <Select
-              name="candidate_id"
-              value={formData.candidate_id}
-              onChange={handleChange}
-              placeholder="Selecteer een kandidaat"
-              options={candidates.map(c => ({
-                value: c.id,
-                label: `${c.first_name} ${c.last_name}`
-              }))}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              size="small"
-              onClick={() => setShowNewCandidate(true)}
-              className="mt-2"
-            >
-              + Nieuwe kandidaat
-            </Button>
-          </>
-        ) : (
-          <div className="new-candidate-form">
-            <Input
-              name="first_name"
-              placeholder="Voornaam"
-              value={newCandidate.first_name}
-              onChange={handleNewCandidateChange}
-            />
-            <Input
-              name="last_name"
-              placeholder="Achternaam"
-              value={newCandidate.last_name}
-              onChange={handleNewCandidateChange}
-            />
-            <Input
-              name="email"
-              type="email"
-              placeholder="E-mail"
-              value={newCandidate.email}
-              onChange={handleNewCandidateChange}
-            />
-            <Input
-              name="phone"
-              placeholder="Telefoon"
-              value={newCandidate.phone}
-              onChange={handleNewCandidateChange}
-            />
-            <div className="button-group">
-              <Button type="button" size="small" onClick={handleCreateCandidate}>
-                Aanmaken
-              </Button>
+    <>
+      <form onSubmit={handleSubmit} className="application-form">
+        <FormRow label="Kandidaat" required error={errors.candidate_id}>
+          {!showNewCandidate ? (
+            <>
+              <Select
+                name="candidate_id"
+                value={formData.candidate_id}
+                onChange={handleChange}
+                placeholder="Selecteer een kandidaat"
+                options={candidates.map(c => ({
+                  value: c.id,
+                  label: c.name
+                }))}
+              />
               <Button
                 type="button"
                 variant="secondary"
                 size="small"
-                onClick={() => setShowNewCandidate(false)}
+                onClick={() => setShowNewCandidate(true)}
+                className="mt-2"
               >
-                Annuleren
+                + Nieuwe kandidaat
               </Button>
-            </div>
-          </div>
-        )}
-      </FormRow>
-
-      <FormRow label="Vacatures" required error={errors.jobs}>
-        <div className="checkbox-group">
-          {jobs.map(job => (
-            <label key={job.id} className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={selectedJobs.includes(job.id)}
-                onChange={() => handleJobToggle(job.id)}
+            </>
+          ) : (
+            <div className="new-candidate-form">
+              <Input
+                name="name"
+                placeholder="Naam"
+                value={newCandidate.name}
+                onChange={handleNewCandidateChange}
+                required
               />
-              {job.title}
-            </label>
-          ))}
+              <Input
+                name="subjects"
+                placeholder="Vakken (bijv. Nederlands, Wiskunde)"
+                value={newCandidate.subjects}
+                onChange={handleNewCandidateChange}
+              />
+              <Textarea
+                name="staff_notes"
+                placeholder="Interne notities (bijv. sterke kandidaat, spontaan)"
+                value={newCandidate.staff_notes}
+                onChange={handleNewCandidateChange}
+                rows={3}
+              />
+              <div className="button-group">
+                <Button type="button" size="small" onClick={handleCreateCandidate}>
+                  Aanmaken
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="small"
+                  onClick={() => setShowNewCandidate(false)}
+                >
+                  Annuleren
+                </Button>
+              </div>
+            </div>
+          )}
+        </FormRow>
+
+        <FormRow label="Vacatures (optioneel - laat leeg voor spontane sollicitatie)" error={errors.jobs}>
+          <div className="checkbox-group">
+            {jobs.length === 0 ? (
+              <p className="text-muted">Nog geen vacatures beschikbaar</p>
+            ) : (
+              jobs.map(job => (
+                <label key={job.id} className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={selectedJobs.includes(job.id)}
+                    onChange={() => handleJobToggle(job.id)}
+                  />
+                  {job.title} {job.vak && `- ${job.vak}`}
+                </label>
+              ))
+            )}
+          </div>
+        </FormRow>
+
+        <div className="form-actions">
+          <Button type="submit" variant="primary">Opslaan</Button>
+          {onCancel && (
+            <Button type="button" variant="secondary" onClick={onCancel}>
+              Annuleren
+            </Button>
+          )}
         </div>
-      </FormRow>
+      </form>
 
-      <FormRow label="E-mail onderwerp" htmlFor="source_email_subject">
-        <Input
-          id="source_email_subject"
-          name="source_email_subject"
-          value={formData.source_email_subject}
-          onChange={handleChange}
-          placeholder="Onderwerp van de sollicitatie-email"
+      {alert && (
+        <AlertModal
+          isOpen={true}
+          onClose={() => setAlert(null)}
+          title={alert.title}
+          message={alert.message}
+          variant={alert.variant}
         />
-      </FormRow>
-
-      <FormRow label="E-mail van" htmlFor="source_email_from">
-        <Input
-          id="source_email_from"
-          name="source_email_from"
-          type="email"
-          value={formData.source_email_from}
-          onChange={handleChange}
-          placeholder="E-mailadres van de sollicitant"
-        />
-      </FormRow>
-
-      <FormRow label="Ontvangen op" htmlFor="received_at">
-        <Input
-          id="received_at"
-          name="received_at"
-          type="datetime-local"
-          value={formData.received_at}
-          onChange={handleChange}
-        />
-      </FormRow>
-
-      <div className="form-actions">
-        <Button type="submit" variant="primary">Opslaan</Button>
-        {onCancel && (
-          <Button type="button" variant="secondary" onClick={onCancel}>
-            Annuleren
-          </Button>
-        )}
-      </div>
-    </form>
+      )}
+    </>
   );
 }
