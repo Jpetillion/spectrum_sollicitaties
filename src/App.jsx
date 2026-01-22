@@ -75,6 +75,7 @@ function App() {
 
         <Route path="/mfa-setup" element={<MfaSetupPage />} />
         <Route path="/mfa-settings" element={<MfaSettingsPage />} />
+        <Route path="/settings" element={<MfaSettingsPage />} />
 
         <Route path="/help" element={<HelpPage />} />
 

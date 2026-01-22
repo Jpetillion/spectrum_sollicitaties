@@ -27,7 +27,7 @@ export default function MfaSettingsPage() {
     setLoading(true);
     try {
       const data = await api.mfaGetStatus();
-      setMfaEnabled(data.enabled);
+      setMfaEnabled(data.mfaEnabled);
       setBackupCodesRemaining(data.backupCodesRemaining);
     } catch (err) {
       setError(err.message || 'Kan MFA status niet laden');
@@ -137,20 +137,20 @@ export default function MfaSettingsPage() {
 
   return (
     <div className="mfa-settings-page">
-      <div className="page-header">
-        <h1>Tweestapsverificatie Instellingen</h1>
-        <p className="text-muted">
+      <div className="page-header" style={{ marginBottom: '2.5rem' }}>
+        <h1 style={{ marginBottom: '0.5rem' }}>Tweestapsverificatie Instellingen</h1>
+        <p className="text-muted" style={{ fontSize: '0.95rem' }}>
           Beveilig uw account met een extra verificatiestap bij het inloggen
         </p>
       </div>
 
-      <div className="page-content">
-        {error && <div className="alert alert--error">{error}</div>}
-        {success && <div className="alert alert--success">{success}</div>}
+      <div className="page-content" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {error && <div className="alert alert--error" style={{ marginBottom: '0' }}>{error}</div>}
+        {success && <div className="alert alert--success" style={{ marginBottom: '0' }}>{success}</div>}
 
-        <div className="mfa-status-card">
-          <div className="mfa-status-card__header">
-            <h2>Status</h2>
+        <div className="mfa-status-card" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+          <div className="mfa-status-card__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #e5e7eb' }}>
+            <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Status</h2>
             <div className={`status-badge status-badge--${mfaEnabled ? 'active' : 'inactive'}`}>
               {mfaEnabled ? 'Actief' : 'Inactief'}
             </div>
@@ -158,16 +158,16 @@ export default function MfaSettingsPage() {
 
           {mfaEnabled ? (
             <>
-              <p>
+              <p style={{ marginBottom: '1.5rem', lineHeight: '1.6' }}>
                 Tweestapsverificatie is momenteel <strong>ingeschakeld</strong> voor uw account.
                 Bij het inloggen moet u een code invoeren uit uw authenticator app.
               </p>
               <div className="mfa-info">
-                <p>
+                <p style={{ marginBottom: '1rem' }}>
                   <strong>Backup codes resterend:</strong> {backupCodesRemaining} van 8
                 </p>
                 {backupCodesRemaining <= 2 && (
-                  <div className="alert alert--warning">
+                  <div className="alert alert--warning" style={{ marginTop: '1rem' }}>
                     U heeft nog maar {backupCodesRemaining} backup codes over. Genereer nieuwe codes.
                   </div>
                 )}
@@ -175,20 +175,20 @@ export default function MfaSettingsPage() {
             </>
           ) : (
             <>
-              <p>
+              <p style={{ marginBottom: '1.5rem', lineHeight: '1.6' }}>
                 Tweestapsverificatie is momenteel <strong>uitgeschakeld</strong> voor uw account.
               </p>
-              <div className="alert alert--info">
-                We raden aan om tweestapsverificatie in te schakelen voor extra beveiliging.
+              <div className="alert alert--info" style={{ margin: '0', padding: '1rem', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px' }}>
+                <p style={{ margin: 0, color: '#1e40af' }}>We raden aan om tweestapsverificatie in te schakelen voor extra beveiliging.</p>
               </div>
             </>
           )}
         </div>
 
         {!mfaEnabled && (
-          <div className="mfa-action-card">
-            <h3>Tweestapsverificatie Inschakelen</h3>
-            <p>
+          <div className="mfa-action-card" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>Tweestapsverificatie Inschakelen</h3>
+            <p style={{ margin: '0 0 1.5rem 0', lineHeight: '1.6', color: '#6b7280' }}>
               Bescherm uw account door naast uw wachtwoord ook een code uit een authenticator app te vereisen.
             </p>
             <Button variant="primary" onClick={handleEnableMfa}>
@@ -199,9 +199,9 @@ export default function MfaSettingsPage() {
 
         {mfaEnabled && !showDisableForm && !showRegenerateForm && newBackupCodes.length === 0 && (
           <>
-            <div className="mfa-action-card">
-              <h3>Backup Codes Regenereren</h3>
-              <p>
+            <div className="mfa-action-card" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>Backup Codes Regenereren</h3>
+              <p style={{ margin: '0 0 1.5rem 0', lineHeight: '1.6', color: '#6b7280' }}>
                 Genereer nieuwe backup codes als u uw huidige codes kwijt bent of als u ze allemaal gebruikt heeft.
                 Dit zal uw oude backup codes ongeldig maken.
               </p>
@@ -210,9 +210,9 @@ export default function MfaSettingsPage() {
               </Button>
             </div>
 
-            <div className="mfa-action-card mfa-action-card--danger">
-              <h3>Tweestapsverificatie Uitschakelen</h3>
-              <p>
+            <div className="mfa-action-card mfa-action-card--danger" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #fee2e2' }}>
+              <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600, color: '#dc2626' }}>Tweestapsverificatie Uitschakelen</h3>
+              <p style={{ margin: '0 0 1.5rem 0', lineHeight: '1.6', color: '#6b7280' }}>
                 Door tweestapsverificatie uit te schakelen wordt uw account minder veilig.
                 U heeft alleen uw wachtwoord nodig om in te loggen.
               </p>
@@ -224,11 +224,11 @@ export default function MfaSettingsPage() {
         )}
 
         {showRegenerateForm && newBackupCodes.length === 0 && (
-          <div className="mfa-form-card">
-            <h3>Backup Codes Regenereren</h3>
-            <p>Voer de 6-cijferige code uit uw authenticator app in om uw identiteit te bevestigen:</p>
+          <div className="mfa-form-card" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600 }}>Backup Codes Regenereren</h3>
+            <p style={{ margin: '0 0 2rem 0', lineHeight: '1.6', color: '#6b7280' }}>Voer de 6-cijferige code uit uw authenticator app in om uw identiteit te bevestigen:</p>
             <form onSubmit={handleRegenerateBackupCodes}>
-              <div className="otp-input-wrapper">
+              <div className="otp-input-wrapper" style={{ marginBottom: '2rem' }}>
                 <OtpInput
                   length={6}
                   value={regenerateCode}
@@ -236,7 +236,7 @@ export default function MfaSettingsPage() {
                   disabled={loading}
                 />
               </div>
-              <div className="form-actions">
+              <div className="form-actions" style={{ display: 'flex', gap: '1rem' }}>
                 <Button
                   type="button"
                   variant="secondary"
@@ -262,20 +262,19 @@ export default function MfaSettingsPage() {
         )}
 
         {newBackupCodes.length > 0 && (
-          <div className="mfa-form-card">
-            <h3>Nieuwe Backup Codes</h3>
-            <div className="alert alert--warning">
-              <strong>Belangrijk:</strong> Bewaar deze codes op een veilige plaats. Elke code kan slechts één keer gebruikt worden.
-              Deze codes worden niet opnieuw getoond!
+          <div className="mfa-form-card" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.1rem', fontWeight: 600 }}>Nieuwe Backup Codes</h3>
+            <div className="alert alert--warning" style={{ margin: '0 0 2rem 0', padding: '1rem', backgroundColor: '#fef3c7', border: '1px solid #fbbf24', borderRadius: '6px' }}>
+              <p style={{ margin: 0, color: '#92400e' }}><strong>Belangrijk:</strong> Bewaar deze codes op een veilige plaats. Elke code kan slechts één keer gebruikt worden. Deze codes worden niet opnieuw getoond!</p>
             </div>
-            <div className="backup-codes-grid">
+            <div className="backup-codes-grid" style={{ marginBottom: '2rem' }}>
               {newBackupCodes.map((code, index) => (
                 <div key={index} className="backup-code">
                   {code}
                 </div>
               ))}
             </div>
-            <div className="form-actions">
+            <div className="form-actions" style={{ display: 'flex', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
               <Button variant="secondary" onClick={handleDownloadBackupCodes}>
                 Download Codes
               </Button>
@@ -290,9 +289,9 @@ export default function MfaSettingsPage() {
         )}
 
         {showDisableForm && (
-          <div className="mfa-form-card mfa-form-card--danger">
-            <h3>Tweestapsverificatie Uitschakelen</h3>
-            <p>Voer uw wachtwoord in om tweestapsverificatie uit te schakelen:</p>
+          <div className="mfa-form-card mfa-form-card--danger" style={{ padding: '2rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #fee2e2' }}>
+            <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 600, color: '#dc2626' }}>Tweestapsverificatie Uitschakelen</h3>
+            <p style={{ margin: '0 0 2rem 0', lineHeight: '1.6', color: '#6b7280' }}>Voer uw wachtwoord in om tweestapsverificatie uit te schakelen:</p>
             <form onSubmit={handleDisableMfa}>
               <FormRow label="Wachtwoord" htmlFor="disable-password">
                 <Input
@@ -305,7 +304,7 @@ export default function MfaSettingsPage() {
                   disabled={loading}
                 />
               </FormRow>
-              <div className="form-actions">
+              <div className="form-actions" style={{ display: 'flex', gap: '1rem', marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb' }}>
                 <Button
                   type="button"
                   variant="secondary"
@@ -330,12 +329,12 @@ export default function MfaSettingsPage() {
           </div>
         )}
 
-        <div className="mfa-help-section">
-          <h3>Hulp nodig?</h3>
-          <ul>
-            <li>Gebruik Google Authenticator of Microsoft Authenticator als authenticator app</li>
-            <li>Backup codes zijn 8-cijferig en kunnen elk slechts één keer gebruikt worden</li>
-            <li>Bewaar uw backup codes op een veilige plaats voor noodgevallen</li>
+        <div className="mfa-help-section" style={{ padding: '2rem', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+          <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1.1rem', fontWeight: 600 }}>Hulp nodig?</h3>
+          <ul style={{ margin: 0, paddingLeft: '1.5rem', lineHeight: '1.8', color: '#6b7280' }}>
+            <li style={{ marginBottom: '0.5rem' }}>Gebruik Google Authenticator of Microsoft Authenticator als authenticator app</li>
+            <li style={{ marginBottom: '0.5rem' }}>Backup codes zijn 8-cijferig en kunnen elk slechts één keer gebruikt worden</li>
+            <li style={{ marginBottom: '0.5rem' }}>Bewaar uw backup codes op een veilige plaats voor noodgevallen</li>
             <li>Neem contact op met de beheerder als u geen toegang meer heeft tot uw account</li>
           </ul>
         </div>
