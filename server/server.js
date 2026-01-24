@@ -66,7 +66,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/mail', mailRoutes);
 app.use('/api/documents', documentsRoutes);
 
-// SSR - Server-Side Rendering
+// Serve HTML
 if (isDev) {
   // Development: Use Vite to transform and serve HTML
   app.get('*', async (req, res, next) => {
@@ -86,23 +86,13 @@ if (isDev) {
     }
   });
 } else {
-  // Production SSR
-  app.get('*', async (req, res) => {
+  // Production: Serve static HTML (SPA)
+  app.get('*', (req, res) => {
     try {
-      // Read the template
       const templatePath = join(__dirname, '..', 'dist', 'client', 'index.html');
-      let template = readFileSync(templatePath, 'utf-8');
-
-      // Import the SSR module
-      const { render } = await import('../dist/server/entry-server.js');
-      const appHtml = render(req.url);
-
-      // Inject the app HTML into the template
-      const html = template.replace('<!--ssr-outlet-->', appHtml);
-
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+      res.sendFile(templatePath);
     } catch (e) {
-      console.error('SSR Error:', e);
+      console.error('Error serving HTML:', e);
       res.status(500).end('Internal Server Error');
     }
   });
