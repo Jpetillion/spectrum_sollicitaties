@@ -66,7 +66,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/mail', mailRoutes);
 app.use('/api/documents', documentsRoutes);
 
-// Serve HTML
+// Serve HTML (only in development or non-Vercel production)
 if (isDev) {
   // Development: Use Vite to transform and serve HTML
   app.get('*', async (req, res, next) => {
@@ -85,8 +85,8 @@ if (isDev) {
       next(e);
     }
   });
-} else {
-  // Production: Serve static HTML (SPA)
+} else if (!process.env.VERCEL) {
+  // Local production: Serve static HTML (SPA)
   app.get('*', (req, res) => {
     try {
       const templatePath = join(__dirname, '..', 'dist', 'client', 'index.html');
@@ -97,6 +97,7 @@ if (isDev) {
     }
   });
 }
+// On Vercel, static files are served by Vercel itself, not by this server
 
 // Error handling
 app.use((err, req, res, next) => {
