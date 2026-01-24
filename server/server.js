@@ -114,8 +114,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Er is een serverfout opgetreden' });
 });
 
-app.listen(PORT, () => {
-  console.log(`
+// Only listen when not in Vercel (for local development)
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`
 ╔═══════════════════════════════════════════════╗
 ║                                               ║
 ║   🎓 Het Spectrum - Sollicitaties App        ║
@@ -125,6 +127,7 @@ app.listen(PORT, () => {
 ║                                               ║
 ╚═══════════════════════════════════════════════╝
   `);
-});
+  });
+}
 
 export default app;

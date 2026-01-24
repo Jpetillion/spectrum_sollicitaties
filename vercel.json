@@ -1,24 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "builds": [
+  "rewrites": [
     {
-      "src": "server/server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "server/server.js"
-    },
-    {
-      "src": "/(.*\\.(js|jsx|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "server/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "server/server.js"
+      "source": "/(.*)",
+      "destination": "/api"
     }
   ],
   "env": {
