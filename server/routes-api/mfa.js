@@ -4,19 +4,16 @@ import {
   generateMfaSecret,
   verifyMfaToken,
   hashBackupCodes,
-  verifyBackupCode
+  verifyBackupCode,
+  generateTempToken
 } from '../auth/mfa.js';
 import { verifyPassword } from '../auth/password.js';
+import { requireAuth } from '../auth/jwt.js';
 
 const router = express.Router();
 
-// Middleware to check if user is logged in
-function requireAuth(req, res, next) {
-  if (!req.session || !req.session.userId) {
-    return res.status(401).json({ error: 'Niet ingelogd' });
-  }
-  next();
-}
+// Store pending MFA setup data (in production, use Redis)
+const pendingMfaSetups = new Map();
 
 /**
  * POST /api/mfa/setup/generate
@@ -24,17 +21,30 @@ function requireAuth(req, res, next) {
  */
 router.post('/setup/generate', requireAuth, async (req, res) => {
   try {
-    const userId = req.session.userId;
-    const userEmail = req.session.userEmail;
+    const userId = req.user.id;
+    const userEmail = req.user.email;
 
     // Generate MFA secret and backup codes
     const { secret, otpAuthUrl, backupCodes } = await generateMfaSecret(userEmail);
 
-    // Temporarily store in session (will be saved to DB on verification)
-    req.session.mfaPendingSecret = secret;
-    req.session.mfaPendingBackupCodes = backupCodes;
+    // Generate setup token and store temporarily
+    const setupToken = generateTempToken(userId.toString());
+    pendingMfaSetups.set(setupToken, {
+      userId,
+      secret,
+      backupCodes,
+      timestamp: Date.now()
+    });
+
+    // Clean up old pending setups (older than 10 minutes)
+    for (const [token, data] of pendingMfaSetups.entries()) {
+      if (Date.now() - data.timestamp > 10 * 60 * 1000) {
+        pendingMfaSetups.delete(token);
+      }
+    }
 
     res.json({
+      setupToken,
       otpAuthUrl,
       secret,
       backupCodes
@@ -51,39 +61,43 @@ router.post('/setup/generate', requireAuth, async (req, res) => {
  */
 router.post('/setup/verify', requireAuth, async (req, res) => {
   try {
-    const { token } = req.body;
-    const userId = req.session.userId;
+    const { token, setupToken } = req.body;
+    const userId = req.user.id;
 
-    if (!token) {
-      return res.status(400).json({ error: 'Token is verplicht' });
+    if (!token || !setupToken) {
+      return res.status(400).json({ error: 'Token en setupToken zijn verplicht' });
     }
 
-    const pendingSecret = req.session.mfaPendingSecret;
-    const pendingBackupCodes = req.session.mfaPendingBackupCodes;
-
-    if (!pendingSecret || !pendingBackupCodes) {
+    // Get pending setup data
+    const setupData = pendingMfaSetups.get(setupToken);
+    if (!setupData || setupData.userId !== userId) {
       return res.status(400).json({ error: 'Geen pending MFA setup gevonden. Start opnieuw.' });
     }
 
+    // Check expiry (10 minutes)
+    if (Date.now() - setupData.timestamp > 10 * 60 * 1000) {
+      pendingMfaSetups.delete(setupToken);
+      return res.status(400).json({ error: 'Setup token verlopen. Start opnieuw.' });
+    }
+
     // Verify the token
-    const isValid = verifyMfaToken(pendingSecret, token);
+    const isValid = verifyMfaToken(setupData.secret, token);
 
     if (!isValid) {
       return res.status(400).json({ error: 'Ongeldige code. Probeer opnieuw.' });
     }
 
     // Hash backup codes
-    const hashedBackupCodes = await hashBackupCodes(pendingBackupCodes);
+    const hashedBackupCodes = await hashBackupCodes(setupData.backupCodes);
 
     // Save to database
     await executeQuery(
       'UPDATE users SET mfa_enabled = 1, mfa_secret = ?, mfa_backup_codes = ? WHERE id = ?',
-      [pendingSecret, JSON.stringify(hashedBackupCodes), userId]
+      [setupData.secret, JSON.stringify(hashedBackupCodes), userId]
     );
 
-    // Clear pending data from session
-    delete req.session.mfaPendingSecret;
-    delete req.session.mfaPendingBackupCodes;
+    // Clear pending data
+    pendingMfaSetups.delete(setupToken);
 
     res.json({
       success: true,
@@ -102,7 +116,7 @@ router.post('/setup/verify', requireAuth, async (req, res) => {
 router.post('/verify', requireAuth, async (req, res) => {
   try {
     const { token } = req.body;
-    const userId = req.session.userId;
+    const userId = req.user.id;
 
     const result = await executeQuery(
       'SELECT mfa_secret FROM users WHERE id = ? AND mfa_enabled = 1',
@@ -130,7 +144,7 @@ router.post('/verify', requireAuth, async (req, res) => {
 router.post('/disable', requireAuth, async (req, res) => {
   try {
     const { password } = req.body;
-    const userId = req.session.userId;
+    const userId = req.user.id;
 
     if (!password) {
       return res.status(400).json({ error: 'Wachtwoord is verplicht' });
@@ -175,7 +189,7 @@ router.post('/disable', requireAuth, async (req, res) => {
  */
 router.get('/status', requireAuth, async (req, res) => {
   try {
-    const userId = req.session.userId;
+    const userId = req.user.id;
 
     const result = await executeQuery(
       'SELECT mfa_enabled, mfa_backup_codes FROM users WHERE id = ?',
@@ -214,7 +228,7 @@ router.get('/status', requireAuth, async (req, res) => {
 router.post('/backup-codes/regenerate', requireAuth, async (req, res) => {
   try {
     const { token } = req.body;
-    const userId = req.session.userId;
+    const userId = req.user.id;
 
     if (!token) {
       return res.status(400).json({ error: 'MFA token is verplicht' });

@@ -117,7 +117,7 @@ export const api = {
     }),
 
   mfaGenerateSetup: () => request('/mfa/setup/generate', { method: 'POST' }),
-  mfaVerifySetup: (token) => request('/mfa/setup/verify', { method: 'POST', body: JSON.stringify({ token }) }),
+  mfaVerifySetup: (token, setupToken) => request('/mfa/setup/verify', { method: 'POST', body: JSON.stringify({ token, setupToken }) }),
   mfaDisable: (password) => request('/mfa/disable', { method: 'POST', body: JSON.stringify({ password }) }),
   mfaGetStatus: () => request('/mfa/status'),
   mfaRegenerateBackupCodes: (token) => request('/mfa/backup-codes/regenerate', { method: 'POST', body: JSON.stringify({ token }) }),

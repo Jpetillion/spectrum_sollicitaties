@@ -7,7 +7,7 @@ import { dirname, join } from 'path';
 import { readFileSync } from 'fs';
 
 // Import middleware
-import { createSessionMiddleware, attachUserToRequest } from './auth/session.js';
+import { attachUserToRequest } from './auth/jwt.js';
 
 // Import API routes
 import authRoutes from './routes-api/auth.js';
@@ -43,7 +43,6 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(createSessionMiddleware());
 app.use(attachUserToRequest);
 
 // Static files

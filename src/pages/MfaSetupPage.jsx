@@ -13,6 +13,7 @@ export default function MfaSetupPage() {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [secret, setSecret] = useState('');
   const [backupCodes, setBackupCodes] = useState([]);
+  const [setupToken, setSetupToken] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export default function MfaSetupPage() {
       const data = await api.mfaGenerateSetup();
       setSecret(data.secret);
       setBackupCodes(data.backupCodes);
+      setSetupToken(data.setupToken);
 
       // Generate QR code from otpauth URL
       const qrDataUrl = await QRCode.toDataURL(data.otpAuthUrl, {
@@ -55,7 +57,7 @@ export default function MfaSetupPage() {
     setError('');
 
     try {
-      await api.mfaVerifySetup(verificationCode);
+      await api.mfaVerifySetup(verificationCode, setupToken);
       setStep(3);
     } catch (err) {
       setError(err.message || 'Verificatie mislukt. Controleer uw code en probeer opnieuw.');

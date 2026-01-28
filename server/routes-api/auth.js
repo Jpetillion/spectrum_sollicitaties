@@ -2,6 +2,7 @@ import express from 'express';
 import { executeQuery } from '../db/client.js';
 import { verifyPassword } from '../auth/password.js';
 import { verifyMfaToken, verifyBackupCode, generateTempToken } from '../auth/mfa.js';
+import { signToken } from '../auth/jwt.js';
 
 const router = express.Router();
 
@@ -53,9 +54,18 @@ router.post('/login', async (req, res) => {
     }
 
     // No MFA - complete login
-    req.session.userId = user.id;
-    req.session.userEmail = user.email;
-    req.session.userRole = user.role;
+    const token = signToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role
+    });
+
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
 
     res.json({
       user: {
@@ -134,11 +144,20 @@ router.post('/login/mfa', async (req, res) => {
     // Delete temp token
     tempTokens.delete(tempToken);
 
-    // Complete login
-    req.session.userId = user.id;
-    req.session.userEmail = user.email;
-    req.session.userRole = user.role;
-    req.session.mfaVerified = true;
+    // Complete login with JWT
+    const token = signToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      mfaVerified: true
+    });
+
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
 
     res.json({
       user: {
@@ -154,21 +173,17 @@ router.post('/login/mfa', async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Fout bij uitloggen' });
-    }
-    res.json({ message: 'Succesvol uitgelogd' });
-  });
+  res.clearCookie('auth_token');
+  res.json({ message: 'Succesvol uitgelogd' });
 });
 
 router.get('/me', (req, res) => {
-  if (req.session && req.session.userId) {
+  if (req.user) {
     res.json({
       user: {
-        id: req.session.userId,
-        email: req.session.userEmail,
-        role: req.session.userRole
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role
       }
     });
   } else {
