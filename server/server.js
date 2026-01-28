@@ -27,6 +27,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
 
+// Trust proxy for secure cookies on Vercel
+app.set('trust proxy', 1);
+
 // Initialize Vite dev server in development
 let vite;
 if (isDev) {

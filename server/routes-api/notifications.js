@@ -1,5 +1,5 @@
 import express from 'express';
-import { requireAuth } from '../auth/session.js';
+import { requireAuth } from '../auth/jwt.js';
 import * as notificationsService from '../services/notificationsService.js';
 
 const router = express.Router();

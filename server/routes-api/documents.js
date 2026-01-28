@@ -1,5 +1,5 @@
 import express from 'express';
-import { requireAuth, requireRole } from '../auth/session.js';
+import { requireAuth, requireRole } from '../auth/jwt.js';
 import { upload } from '../storage/upload.js';
 import * as documentsService from '../services/documentsService.js';
 
