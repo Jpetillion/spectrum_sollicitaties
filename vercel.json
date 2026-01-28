@@ -1,17 +1,10 @@
 {
-  "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist/client",
   "rewrites": [
     {
-      "source": "/api/:path*",
+      "source": "/api/(.*)",
       "destination": "/api"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
     }
   ]
 }

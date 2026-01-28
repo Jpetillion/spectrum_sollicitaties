@@ -4,14 +4,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: 'dist/client',
-    manifest: true,
-    ssrManifest: true,
-    rollupOptions: {
-      input: '/src/entry-client.jsx'
-    }
-  },
-  ssr: {
-    format: 'esm'
+    outDir: 'dist/client'
   }
 });
