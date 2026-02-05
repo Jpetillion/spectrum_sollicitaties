@@ -382,7 +382,7 @@ router.delete('/:id', requireRole(['admin']), async (req, res) => {
     // Check if it's a foreign key constraint error
     if (error.code === 'SQLITE_CONSTRAINT') {
       return res.status(409).json({
-        error: 'Deze gebruiker kan niet worden verwijderd omdat er nog gerelateerde gegevens zijn (notificaties, evaluaties, of sollicitaties). Verwijder eerst deze gegevens of maak de gebruiker inactief.'
+        error: 'Deze gebruiker kan niet worden verwijderd omdat er nog gerelateerde gegevens zijn (notificaties, evaluaties, of sollicitaties). Verwijder eerst deze gegevens.'
       });
     }
 
