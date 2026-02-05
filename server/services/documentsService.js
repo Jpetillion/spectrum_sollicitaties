@@ -1,43 +1,10 @@
 import { executeQuery } from '../db/client.js';
-import path from 'path';
-import fs from 'fs/promises';
-import { fileURLToPath } from 'url';
+import { uploadFile, deleteFile } from '../storage/blob-storage.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Storage directory (local development)
-const UPLOAD_DIR = path.join(__dirname, '../../uploads');
-
-// Ensure upload directory exists
-async function ensureUploadDir() {
-  try {
-    await fs.access(UPLOAD_DIR);
-  } catch {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  }
-}
-
-// Upload document to local storage (Vercel Blob in production)
+// Upload document to Vercel Blob (production) or local storage (development)
 export async function uploadDocument(candidateId, type, file, uploadedByUserId) {
-  await ensureUploadDir();
-
-  // Generate unique filename
-  const timestamp = Date.now();
-  const ext = path.extname(file.originalname);
-  const basename = path.basename(file.originalname, ext);
-  const filename = `${candidateId}_${type}_${timestamp}_${basename}${ext}`;
-  const filepath = path.join(UPLOAD_DIR, filename);
-
-  // Save file to disk
-  await fs.writeFile(filepath, file.buffer);
-
-  // In production, you would upload to Vercel Blob here instead:
-  // const blob = await put(filename, file.buffer, { access: 'public' });
-  // const url = blob.url;
-
-  // For now, use relative path
-  const url = `/uploads/${filename}`;
+  // Upload file using blob-storage module (handles both Vercel Blob and local storage)
+  const { url, pathname } = await uploadFile(file.buffer, file.originalname, file.mimetype);
 
   // Insert into database
   const result = await executeQuery(
@@ -82,15 +49,12 @@ export async function deleteDocument(id) {
     throw new Error('Document niet gevonden');
   }
 
-  // Delete file from storage
-  if (document.url_or_path.startsWith('/uploads/')) {
-    const filepath = path.join(__dirname, '../../', document.url_or_path);
-    try {
-      await fs.unlink(filepath);
-    } catch (error) {
-      console.error('Error deleting file:', error);
-      // Continue even if file doesn't exist
-    }
+  // Delete file from storage (Vercel Blob or local)
+  try {
+    await deleteFile(document.url_or_path);
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    // Continue even if file doesn't exist
   }
 
   // Delete from database

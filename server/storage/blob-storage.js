@@ -3,11 +3,14 @@ import { existsSync, mkdirSync, writeFileSync, unlinkSync, readFileSync } from '
 import path from 'path';
 
 const USE_VERCEL_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN;
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
+// Use /tmp for serverless environments, ./uploads for local development
+const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/uploads' : './uploads');
 
 // Ensure local upload directory exists if we're using local storage
-if (!USE_VERCEL_BLOB && !existsSync(UPLOAD_DIR)) {
-  mkdirSync(UPLOAD_DIR, { recursive: true });
+function ensureUploadDir() {
+  if (!USE_VERCEL_BLOB && !existsSync(UPLOAD_DIR)) {
+    mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
 }
 
 /**
@@ -38,6 +41,7 @@ export async function uploadFile(buffer, filename, contentType) {
     };
   } else {
     // Save to local filesystem
+    ensureUploadDir(); // Ensure directory exists before writing
     const filePath = path.join(UPLOAD_DIR, uniqueFilename);
     writeFileSync(filePath, buffer);
 
