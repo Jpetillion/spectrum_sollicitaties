@@ -52,11 +52,11 @@ router.post('/', requireRole(['staf', 'admin', 'directie']), async (req, res) =>
   try {
     const { job_ids, ...applicationData } = req.body;
 
-    console.log('[POST /applications] Creating application:', { applicationData, job_ids, userId: req.session.userId });
+    console.log('[POST /applications] Creating application:', { applicationData, job_ids, userId: req.user.id });
 
     const applicationId = await applicationsService.createApplication(
       applicationData,
-      req.session.userId
+      req.user.id
     );
 
     console.log('[POST /applications] Application created with ID:', applicationId);
@@ -91,8 +91,8 @@ router.put('/:id', requireRole(['staf', 'admin', 'directie']), async (req, res) 
       id: req.params.id,
       applicationData,
       job_ids,
-      user: req.session.userId,
-      role: req.session.userRole
+      user: req.user.id,
+      role: req.user.role
     });
 
     const application = await applicationsService.updateApplication(req.params.id, applicationData);

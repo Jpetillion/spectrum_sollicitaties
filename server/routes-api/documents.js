@@ -38,7 +38,7 @@ router.post(
         candidateId,
         type,
         req.file,
-        req.session.userId
+        req.user.id
       );
 
       console.log('[DOCS API] Document uploaded successfully:', document.id);

@@ -59,7 +59,7 @@ router.post('/generate', requireRole(['admin', 'directie', 'staf']), async (req,
       template_type,
       candidateName,
       jobTitle,
-      req.session.userId
+      req.user.id
     );
 
     const draft = await mailService.getMailDraftById(draftId);
@@ -75,8 +75,8 @@ router.put('/outbox/:id', requireRole(['admin', 'staf', 'directie']), async (req
     console.log('[MAIL API] PUT /outbox/:id called:', {
       id: req.params.id,
       body: req.body,
-      user: req.session?.userId,
-      role: req.session?.userRole
+      user: req.user?.id,
+      role: req.user?.role
     });
     const { subject, body } = req.body;
     await mailService.updateMailDraft(req.params.id, subject, body);
@@ -92,7 +92,7 @@ router.put('/outbox/:id', requireRole(['admin', 'staf', 'directie']), async (req
 router.post('/outbox/:id/approve', requireRole(['directie', 'admin']), async (req, res) => {
   try {
     console.log('[MAIL API] POST /outbox/:id/approve called:', req.params.id);
-    await mailService.approveMailDraft(req.params.id, req.session.userId);
+    await mailService.approveMailDraft(req.params.id, req.user.id);
     console.log('[MAIL API] Mail approved successfully');
     res.json({ message: 'Mail goedgekeurd' });
   } catch (error) {

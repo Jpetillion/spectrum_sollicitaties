@@ -23,7 +23,7 @@ router.post('/', requireRole(['admin', 'directie']), async (req, res) => {
   try {
     const evaluationId = await evaluationsService.createOrUpdateEvaluation(
       req.body,
-      req.session.userId
+      req.user.id
     );
 
     const evaluation = await evaluationsService.getEvaluationById(evaluationId);
@@ -46,13 +46,13 @@ router.delete('/:id', requireRole(['admin', 'directie']), async (req, res) => {
 
 router.post('/jobs/:jobId/signoff', requireRole(['directie', 'admin']), async (req, res) => {
   try {
-    const userRole = req.session.userRole;
+    const userRole = req.user.role;
     const signoffRole = userRole === 'directie' ? 'directie' : 'admin';
 
     const signoffId = await evaluationsService.addSignoff(
       req.params.jobId,
       signoffRole,
-      req.session.userId
+      req.user.id
     );
 
     res.json({ id: signoffId, message: 'Aftekening geregistreerd' });

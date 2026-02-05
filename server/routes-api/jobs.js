@@ -29,7 +29,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 
 router.post('/', requireRole(['admin', 'directie', 'staf']), async (req, res) => {
   try {
-    const jobId = await jobsService.createJob(req.body, req.session.userId);
+    const jobId = await jobsService.createJob(req.body, req.user.id);
     const job = await jobsService.getJobById(jobId);
     res.status(201).json(job);
   } catch (error) {
