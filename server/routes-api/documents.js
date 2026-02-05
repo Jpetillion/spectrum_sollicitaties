@@ -8,7 +8,7 @@ const router = express.Router();
 // Upload document voor een kandidaat
 router.post(
   '/candidates/:candidateId/upload',
-  requireRole(['staf', 'admin']),
+  requireRole(['staf', 'admin', 'directie']),
   upload.single('document'),
   async (req, res) => {
     try {
@@ -81,7 +81,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 });
 
 // Verwijder een document
-router.delete('/:id', requireRole(['admin']), async (req, res) => {
+router.delete('/:id', requireRole(['admin', 'directie']), async (req, res) => {
   try {
     const { id } = req.params;
     await documentsService.deleteDocument(id);

@@ -14,6 +14,8 @@ import OutboxPage from './pages/OutboxPage.jsx';
 import MailDetailPage from './pages/MailDetailPage.jsx';
 import MfaSetupPage from './pages/MfaSetupPage.jsx';
 import MfaSettingsPage from './pages/MfaSettingsPage.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
+import UsersAdminPage from './pages/UsersAdminPage.jsx';
 import HelpPage from './pages/HelpPage.jsx';
 import { api } from './lib/apiClient.js';
 
@@ -46,6 +48,10 @@ function App() {
     setUser(userData);
   };
 
+  const handleUserUpdated = (userData) => {
+    setUser(userData);
+  };
+
   if (loading) {
     return <div className="loading">Laden...</div>;
   }
@@ -75,7 +81,12 @@ function App() {
 
         <Route path="/mfa-setup" element={<MfaSetupPage />} />
         <Route path="/mfa-settings" element={<MfaSettingsPage />} />
-        <Route path="/settings" element={<MfaSettingsPage />} />
+        <Route path="/settings" element={<SettingsPage user={user} onUserUpdated={handleUserUpdated} />} />
+
+        {/* Admin only routes */}
+        {user.role === 'admin' && (
+          <Route path="/admin/users" element={<UsersAdminPage />} />
+        )}
 
         <Route path="/help" element={<HelpPage />} />
 

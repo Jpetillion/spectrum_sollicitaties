@@ -48,6 +48,16 @@ export const api = {
 
   getCurrentUser: () => request('/auth/me'),
 
+  // Users (Admin + Self-service)
+  getUsers: () => request('/users'),
+  createUser: (data) => request('/users', { method: 'POST', body: JSON.stringify(data) }),
+  updateUser: (id, data) => request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
+
+  // Self-service profile
+  getMyProfile: () => request('/users/me'),
+  updateMyProfile: (data) => request('/users/me', { method: 'PUT', body: JSON.stringify(data) }),
+
   // Jobs
   getJobs: () => request('/jobs'),
   getJob: (id) => request(`/jobs/${id}`),

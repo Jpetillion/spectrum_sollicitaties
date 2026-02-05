@@ -177,15 +177,33 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Succesvol uitgelogd' });
 });
 
-router.get('/me', (req, res) => {
+router.get('/me', async (req, res) => {
   if (req.user) {
-    res.json({
-      user: {
-        id: req.user.id,
-        email: req.user.email,
-        role: req.user.role
+    try {
+      // Fetch fresh user data from DB (name can change)
+      const result = await executeQuery(
+        'SELECT id, name, email, role, mfa_enabled FROM users WHERE id = ?',
+        [req.user.id]
+      );
+
+      const user = result.rows[0];
+      if (!user) {
+        return res.status(404).json({ error: 'Gebruiker niet gevonden' });
       }
-    });
+
+      res.json({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          mfaEnabled: user.mfa_enabled === 1
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching user in /me:', error);
+      res.status(500).json({ error: 'Er is een fout opgetreden' });
+    }
   } else {
     res.status(401).json({ error: 'Niet ingelogd' });
   }

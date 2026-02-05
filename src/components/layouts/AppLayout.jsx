@@ -5,6 +5,7 @@ import {
   Briefcase,
   FileText,
   Users,
+  UserGear,
   Envelope,
   Bell,
   SignOut,
@@ -100,6 +101,13 @@ export default function AppLayout({ user, children }) {
             <Users size={20} weight="duotone" />
             <span>Kandidaten</span>
           </Link>
+
+          {user?.role === 'admin' && (
+            <Link to="/admin/users" className="nav-item">
+              <UserGear size={20} weight="duotone" />
+              <span>Gebruikers</span>
+            </Link>
+          )}
 
           <Link to="/mail/outbox" className="nav-item">
             <Envelope size={20} weight="duotone" />

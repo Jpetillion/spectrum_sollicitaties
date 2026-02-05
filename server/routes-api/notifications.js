@@ -6,8 +6,8 @@ const router = express.Router();
 
 router.get('/', requireAuth, async (req, res) => {
   try {
-    const notifications = await notificationsService.getNotificationsForUser(req.session.userId);
-    const unreadCount = await notificationsService.getUnreadCount(req.session.userId);
+    const notifications = await notificationsService.getNotificationsForUser(req.user.id);
+    const unreadCount = await notificationsService.getUnreadCount(req.user.id);
 
     res.json({
       notifications,
@@ -31,7 +31,7 @@ router.put('/:id/read', requireAuth, async (req, res) => {
 
 router.put('/read-all', requireAuth, async (req, res) => {
   try {
-    await notificationsService.markAllNotificationsAsRead(req.session.userId);
+    await notificationsService.markAllNotificationsAsRead(req.user.id);
     res.json({ message: 'Alle notificaties gemarkeerd als gelezen' });
   } catch (error) {
     console.error('Error marking all notifications as read:', error);

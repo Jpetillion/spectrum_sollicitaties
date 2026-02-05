@@ -125,19 +125,19 @@ export default function HelpPage() {
                 <td style={{ padding: '0.75rem' }}>Sollicitaties toevoegen</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Sollicitaties bewerken</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Sollicitaties verwijderen</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Sollicitatie status wijzigen</td>
@@ -155,13 +155,13 @@ export default function HelpPage() {
                 <td style={{ padding: '0.75rem' }}>Kandidaten bewerken</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Kandidaten verwijderen</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Vacatures bekijken</td>
@@ -172,37 +172,55 @@ export default function HelpPage() {
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Vacatures toevoegen</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Vacatures bewerken</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Vacatures verwijderen</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Documenten uploaden</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>Documenten verwijderen</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
-                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
               </tr>
               <tr style={{ borderBottom: '1px solid #eee' }}>
                 <td style={{ padding: '0.75rem' }}>E-mails versturen</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '0.75rem' }}>Gebruikers aanmaken</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '0.75rem' }}>Gebruikers bewerken</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '0.75rem' }}>Gebruikers verwijderen</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>✓</td>
+                <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>-</td>
               </tr>
               <tr>

@@ -12,6 +12,7 @@ import { attachUserToRequest } from './auth/jwt.js';
 // Import API routes
 import authRoutes from './routes-api/auth.js';
 import mfaRoutes from './routes-api/mfa.js';
+import usersRoutes from './routes-api/users.js';
 import jobsRoutes from './routes-api/jobs.js';
 import candidatesRoutes from './routes-api/candidates.js';
 import applicationsRoutes from './routes-api/applications.js';
@@ -60,6 +61,7 @@ if (!isDev) {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/mfa', mfaRoutes);
+app.use('/api/users', usersRoutes);
 app.use('/api/jobs', jobsRoutes);
 app.use('/api/candidates', candidatesRoutes);
 app.use('/api/applications', applicationsRoutes);

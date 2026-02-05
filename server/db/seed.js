@@ -8,18 +8,30 @@ export async function seedDatabase() {
   const defaultPassword = await hashPassword('Welcome123!');
 
   const users = [
-    { email: 'admin@hetspectrum.be', role: 'admin' },
-    { email: 'directie@hetspectrum.be', role: 'directie' },
-    { email: 'staf@hetspectrum.be', role: 'staf' }
+    // ADMIN
+    { name: 'Joris Petillion', email: 'joris.petillion@onderwijs.gent.be', role: 'admin' },
+    { name: 'Steven Desmet', email: 'steven.desmet@onderwijs.gent.be', role: 'admin' },
+
+    // DIRECTIE
+    { name: 'De Doncker Caroline', email: 'caroline.dedoncker@onderwijs.gent.be', role: 'directie' },
+    { name: 'Bicici Ediz', email: 'ediz.bicici@onderwijs.gent.be', role: 'directie' },
+    { name: 'Orlans Charlene', email: 'charlene.orlans@onderwijs.gent.be', role: 'directie' },
+
+    // STAF
+    { name: 'Spectrum Personeel', email: 'spectrum.personeel@onderwijs.gent.be', role: 'staf' },
+    { name: 'Sarah Meirlaen', email: 'sarah.meirlaen@onderwijs.gent.be', role: 'staf' },
+    { name: 'Elien Lemaire', email: 'elien.lemaire@onderwijs.gent.be', role: 'staf' },
+    { name: 'Jasper Brondeel', email: 'jasper.brondeel@onderwijs.gent.be', role: 'staf' },
+    { name: 'Chahrazad Dafi', email: 'chahrazad.dafi@onderwijs.gent.be', role: 'staf' },
   ];
 
   for (const user of users) {
     try {
       await executeQuery(
-        'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
-        [user.email, defaultPassword, user.role]
+        'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+        [user.name, user.email, defaultPassword, user.role]
       );
-      console.log(`✓ Created user: ${user.email} (password: Welcome123!)`);
+      console.log(`✓ Created user: ${user.name} <${user.email}> (password: Welcome123!)`);
     } catch (error) {
       if (error.message.includes('UNIQUE')) {
         console.log(`→ User ${user.email} already exists`);

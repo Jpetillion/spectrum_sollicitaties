@@ -46,7 +46,7 @@ router.post('/', requireRole(['staf', 'admin']), async (req, res) => {
   }
 });
 
-router.put('/:id', requireRole(['staf', 'admin']), async (req, res) => {
+router.put('/:id', requireRole(['staf', 'admin', 'directie']), async (req, res) => {
   try {
     const candidate = await candidatesService.updateCandidate(req.params.id, req.body);
     res.json(candidate);
@@ -56,7 +56,7 @@ router.put('/:id', requireRole(['staf', 'admin']), async (req, res) => {
   }
 });
 
-router.delete('/:id', requireRole(['admin']), async (req, res) => {
+router.delete('/:id', requireRole(['admin', 'directie']), async (req, res) => {
   try {
     await candidatesService.deleteCandidate(req.params.id);
     res.json({ message: 'Kandidaat verwijderd' });

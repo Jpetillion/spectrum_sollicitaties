@@ -48,7 +48,7 @@ router.get('/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/', requireRole(['staf', 'admin']), async (req, res) => {
+router.post('/', requireRole(['staf', 'admin', 'directie']), async (req, res) => {
   try {
     const { job_ids, ...applicationData } = req.body;
 
@@ -109,7 +109,7 @@ router.put('/:id', requireRole(['staf', 'admin', 'directie']), async (req, res) 
   }
 });
 
-router.delete('/:id', requireRole(['admin']), async (req, res) => {
+router.delete('/:id', requireRole(['admin', 'directie']), async (req, res) => {
   try {
     await applicationsService.deleteApplication(req.params.id);
     res.json({ message: 'Sollicitatie verwijderd' });
@@ -119,7 +119,7 @@ router.delete('/:id', requireRole(['admin']), async (req, res) => {
   }
 });
 
-router.post('/:id/attachments', requireRole(['admin']), upload.single('file'), async (req, res) => {
+router.post('/:id/attachments', requireRole(['admin', 'staf', 'directie']), upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'Geen bestand geüpload' });

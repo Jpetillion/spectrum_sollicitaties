@@ -70,7 +70,7 @@ router.post('/generate', requireRole(['admin', 'directie', 'staf']), async (req,
   }
 });
 
-router.put('/outbox/:id', requireRole(['admin', 'staf']), async (req, res) => {
+router.put('/outbox/:id', requireRole(['admin', 'staf', 'directie']), async (req, res) => {
   try {
     console.log('[MAIL API] PUT /outbox/:id called:', {
       id: req.params.id,

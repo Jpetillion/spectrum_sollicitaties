@@ -48,7 +48,7 @@ router.put('/:id', requireRole(['admin', 'directie', 'staf']), async (req, res) 
   }
 });
 
-router.delete('/:id', requireRole(['admin']), async (req, res) => {
+router.delete('/:id', requireRole(['admin', 'directie', 'staf']), async (req, res) => {
   try {
     await jobsService.deleteJob(req.params.id);
     res.json({ message: 'Vacature verwijderd' });
